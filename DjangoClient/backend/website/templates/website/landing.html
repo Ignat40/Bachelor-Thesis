@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block content %}
 <!-- LANDING PAGE -->
 <div id="page-landing" class="page active">
   <section class="hero">
@@ -10,8 +13,8 @@
       <h1>Every child deserves a <em>confident</em> <strong>voice</strong></h1>
       <p class="hero-sub">SpeechBuddy helps speech therapists assign personalised exercises to children, track their progress, and celebrate every breakthrough — from clinic to home.</p>
       <div class="hero-btns">
-        <button class="btn-primary" onclick="showPage('login')">🎓 Therapist Portal</button>
-        <button class="btn-secondary" onclick="showPage('about')">Learn More</button>
+        <a class="btn-primary" href="{% url 'login' %}">Therapist Portal</a>
+        <a class="btn-secondary" href="{% url 'about' %}">Learn More</a>
       </div>
       <div class="hero-stats">
         <div class="stat-pill">
@@ -30,50 +33,50 @@
     </div>
     <div class="hero-art">
       <div class="mascot-wrap">
-        <div class="mascot-glow"></div>
-        <svg width="320" height="360" viewBox="0 0 320 360" fill="none">
+        <!-- <div class="mascot-glow"></div> -->
+        <!-- <svg width="320" height="360" viewBox="0 0 320 360" fill="none"> -->
           <!-- Body -->
-          <ellipse cx="160" cy="240" rx="90" ry="80" fill="#1A6FD4"/>
+          <!-- <ellipse cx="160" cy="240" rx="90" ry="80" fill="#1A6FD4"/> -->
           <!-- Belly -->
-          <ellipse cx="160" cy="255" rx="55" ry="50" fill="#4A9FFF"/>
+          <!-- <ellipse cx="160" cy="255" rx="55" ry="50" fill="#4A9FFF"/> -->
           <!-- Head -->
-          <circle cx="160" cy="155" r="85" fill="#1A6FD4"/>
+          <!-- <circle cx="160" cy="155" r="85" fill="#1A6FD4"/> -->
           <!-- Face bg -->
-          <ellipse cx="160" cy="165" rx="60" ry="55" fill="#4A9FFF"/>
+          <!-- <ellipse cx="160" cy="165" rx="60" ry="55" fill="#4A9FFF"/> -->
           <!-- Eyes -->
-          <circle cx="138" cy="148" r="20" fill="white"/>
-          <circle cx="182" cy="148" r="20" fill="white"/>
-          <circle cx="138" cy="148" r="12" fill="#1A1F2E"/>
-          <circle cx="182" cy="148" r="12" fill="#1A1F2E"/>
-          <circle cx="142" cy="144" r="4" fill="white"/>
-          <circle cx="186" cy="144" r="4" fill="white"/>
+          <!-- <circle cx="138" cy="148" r="20" fill="white"/> -->
+          <!-- <circle cx="182" cy="148" r="20" fill="white"/> -->
+          <!-- <circle cx="138" cy="148" r="12" fill="#1A1F2E"/> -->
+          <!-- <circle cx="182" cy="148" r="12" fill="#1A1F2E"/> -->
+          <!-- <circle cx="142" cy="144" r="4" fill="white"/> -->
+          <!-- <circle cx="186" cy="144" r="4" fill="white"/> -->
           <!-- Smile -->
-          <path d="M135 175 Q160 195 185 175" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <!-- <path d="M135 175 Q160 195 185 175" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/> -->
           <!-- Cheeks -->
-          <circle cx="118" cy="170" r="14" fill="#FFB3BA" opacity=".5"/>
-          <circle cx="202" cy="170" r="14" fill="#FFB3BA" opacity=".5"/>
+          <!-- <circle cx="118" cy="170" r="14" fill="#FFB3BA" opacity=".5"/> -->
+          <!-- <circle cx="202" cy="170" r="14" fill="#FFB3BA" opacity=".5"/> -->
           <!-- Ears/Head top details -->
-          <circle cx="100" cy="110" r="22" fill="#0D4A9A"/>
-          <circle cx="220" cy="110" r="22" fill="#0D4A9A"/>
-          <circle cx="100" cy="110" r="12" fill="#1A6FD4"/>
-          <circle cx="220" cy="110" r="12" fill="#1A6FD4"/>
+          <!-- <circle cx="100" cy="110" r="22" fill="#0D4A9A"/> -->
+          <!-- <circle cx="220" cy="110" r="22" fill="#0D4A9A"/> -->
+          <!-- <circle cx="100" cy="110" r="12" fill="#1A6FD4"/> -->
+          <!-- <circle cx="220" cy="110" r="12" fill="#1A6FD4"/> -->
           <!-- Arms -->
-          <ellipse cx="82" cy="235" rx="22" ry="38" fill="#1A6FD4" transform="rotate(-15 82 235)"/>
-          <ellipse cx="238" cy="235" rx="22" ry="38" fill="#1A6FD4" transform="rotate(15 238 235)"/>
+          <!-- <ellipse cx="82" cy="235" rx="22" ry="38" fill="#1A6FD4" transform="rotate(-15 82 235)"/> -->
+          <!-- <ellipse cx="238" cy="235" rx="22" ry="38" fill="#1A6FD4" transform="rotate(15 238 235)"/> -->
           <!-- Hands -->
-          <circle cx="68" cy="270" r="18" fill="#4A9FFF"/>
-          <circle cx="252" cy="270" r="18" fill="#4A9FFF"/>
+          <!-- <circle cx="68" cy="270" r="18" fill="#4A9FFF"/> -->
+          <!-- <circle cx="252" cy="270" r="18" fill="#4A9FFF"/> -->
           <!-- Star badge -->
-          <circle cx="230" cy="135" r="28" fill="#FFD600"/>
-          <text x="230" y="141" text-anchor="middle" font-size="24" fill="#1A1F2E">⭐</text>
+          <!-- <circle cx="230" cy="135" r="28" fill="#FFD600"/> -->
+          <!-- <text x="230" y="141" text-anchor="middle" font-size="24" fill="#1A1F2E">⭐</text> -->
           <!-- Sound waves from mouth -->
-          <path d="M210 185 Q225 178 210 172" stroke="#FFD600" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
-          <path d="M218 190 Q240 178 218 168" stroke="#FFD600" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".6"/>
-          <path d="M225 195 Q255 178 225 163" stroke="#FFD600" stroke-width="2" fill="none" stroke-linecap="round" opacity=".4"/>
+          <!-- <path d="M210 185 Q225 178 210 172" stroke="#FFD600" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/> -->
+          <!-- <path d="M218 190 Q240 178 218 168" stroke="#FFD600" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".6"/> -->
+          <!-- <path d="M225 195 Q255 178 225 163" stroke="#FFD600" stroke-width="2" fill="none" stroke-linecap="round" opacity=".4"/> -->
           <!-- Feet -->
-          <ellipse cx="128" cy="318" rx="32" ry="18" fill="#0D4A9A"/>
-          <ellipse cx="192" cy="318" rx="32" ry="18" fill="#0D4A9A"/>
-        </svg>
+          <!-- <ellipse cx="128" cy="318" rx="32" ry="18" fill="#0D4A9A"/> -->
+          <!-- <ellipse cx="192" cy="318" rx="32" ry="18" fill="#0D4A9A"/> -->
+        <!-- </svg> -->
       </div>
     </div>
   </section>
@@ -85,32 +88,32 @@
     <p class="section-sub">A complete toolkit for tracking speech therapy progress and managing patient exercises with ease.</p>
     <div class="features-grid">
       <div class="feat-card blue">
-        <span class="feat-icon">📊</span>
+        <span class="feat-icon"></span>
         <h3>Real-time Progress Tracking</h3>
         <p>Visualise each child's improvement over time with intuitive charts and milestone alerts — always know who needs attention.</p>
       </div>
       <div class="feat-card yellow">
-        <span class="feat-icon">🎯</span>
+        <span class="feat-icon"></span>
         <h3>Personalised Exercise Plans</h3>
         <p>Assign specific exercises with custom repetition targets, difficulty levels, and schedules tailored to each child's needs.</p>
       </div>
       <div class="feat-card red">
-        <span class="feat-icon">🏠</span>
+        <span class="feat-icon"></span>
         <h3>Practice at Home</h3>
         <p>Children continue their exercises at home through the SpeechBuddy app, with AI evaluation keeping therapists in the loop.</p>
       </div>
       <div class="feat-card blue">
-        <span class="feat-icon">🎮</span>
+        <span class="feat-icon"></span>
         <h3>Gamified Experience</h3>
         <p>Kids earn stars, unlock characters, and level up — making practice feel like play, not work.</p>
       </div>
       <div class="feat-card yellow">
-        <span class="feat-icon">🔔</span>
+        <span class="feat-icon"></span>
         <h3>Smart Notifications</h3>
         <p>Get notified when children complete sessions, skip exercises, or hit new milestones — stay connected without micromanaging.</p>
       </div>
       <div class="feat-card red">
-        <span class="feat-icon">📁</span>
+        <span class="feat-icon"></span>
         <h3>Detailed Session Reports</h3>
         <p>Every session is recorded and analysed. Export reports for clinical documentation or parent meetings in one click.</p>
       </div>
@@ -150,14 +153,15 @@
   <section class="cta-section">
     <h2>Ready to help more kids find their voice?</h2>
     <p>Join therapists who are making speech practice accessible, measurable and fun.</p>
-    <button class="btn-primary" style="font-size:18px; padding:16px 40px;" onclick="showPage('login')">Get Started Today</button>
+    <a class="btn-primary" style="font-size:18px; padding:16px 40px;" href="{% url 'login' %}">Get Started Today</a>
   </section>
 
   <footer>
     <div>
-      <div class="logo-text">Speech<span>Buddy</span></div>
+      {% comment %} <div class="logo-text">Speech<span>Buddy</span></div> {% endcomment %}
       <p style="margin-top:8px;font-size:13px;">BSc Software Engineering Thesis Project, 2026</p>
     </div>
     <p>Built with 💙 to help every child find their voice</p>
   </footer>
 </div>
+{% endblock %}

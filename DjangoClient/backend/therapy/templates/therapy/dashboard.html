@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Therapist Dashboard{% endblock %}
+
+{% block content %}
+<div id="page-dashboard" class="page active" data-dashboard-page>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-section-label">Main</div>
+      <button class="sidebar-item active" type="button" data-view="overview">
+        <span class="icon"></span> Overview
+      </button>
+      <button class="sidebar-item" type="button" data-view="patients">
+        <span class="icon"></span> My Patients
+        <span class="sidebar-badge" id="patient-badge">{{ children_count|default:8 }}</span>
+      </button>
+      <button class="sidebar-item" type="button" data-view="exercises">
+        <span class="icon"></span> Exercises
+      </button>
+      <button class="sidebar-item" type="button" data-view="progress">
+        <span class="icon"></span> Progress Reports
+      </button>
+      <div class="sidebar-section-label">Tools</div>
+      <button class="sidebar-item" type="button" data-view="assign">
+        <span class="icon"></span> Assign Exercise
+      </button>
+      <button class="sidebar-item" type="button" data-view="alerts">
+        <span class="icon"></span> Alerts
+        <span class="sidebar-badge" style="background:var(--yellow-dark);" id="alert-badge">3</span>
+      </button>
+      <div class="sidebar-section-label">Account</div>
+      <a class="sidebar-item" href="{% url 'logout' %}">
+        <span class="icon"></span> Log Out
+      </a>
+    </aside>
+
+    <main class="dash-content" id="dash-main" data-therapist="{{ request.user.get_short_name|default:request.user.username }}">
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Assign Exercises</div>
+      <button class="modal-close" type="button" data-close-modal>✕</button>
+    </div>
+    <div class="form-group">
+      <label for="modal-patient">Select Patient</label>
+      <select id="modal-patient">
+        <option value="">Choose a patient...</option>
+      </select>
+    </div>
+    <label>Select Exercises</label>
+    <div class="ex-checkbox-list" id="modal-exercises"></div>
+    <div class="form-group">
+      <label for="assignment-notes">Notes for the child/parent</label>
+      <textarea id="assignment-notes" placeholder="E.g. Focus on slow pronunciation this week..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel" type="button" data-close-modal>Cancel</button>
+      <button class="modal-submit" type="button" id="submit-assignment">Assign Exercises ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel-overlay" id="patient-panel">
+  <div class="panel" id="panel-content"></div>
+</div>
+
+<div class="toast" id="toast">Exercises assigned successfully!</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/script.js' %}"></script>
+{% endblock %}

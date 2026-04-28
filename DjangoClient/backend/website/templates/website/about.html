@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div id="page-about" class="page active">
+  <div class="about-hero">
+    <h1>Our Mission</h1>
+    <p>We believe every child with a speech impairment deserves engaging, effective practice — not just in the clinic, but at home, every single day.</p>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-text">
+      <h2>Why we built SpeechBuddy</h2>
+      <p>Speech therapy is most effective when children practise consistently — but traditional methods make home practice difficult to track, manage, and motivate.</p>
+      <p>SpeechBuddy bridges the gap between the clinic and home. Therapists assign exercises. Kids practise through a fun, game-like app. Progress flows back automatically, so therapists always know exactly how their patients are doing.</p>
+      <p>We're a team of Software Engineering students at the University of Copenhagen working on this as our Bachelor Thesis, guided by real feedback from speech-language pathologists.</p>
+    </div>
+    <div class="about-visual">
+      <h3 style="font-family:var(--ff-display);font-size:20px;font-weight:800;margin-bottom:20px;color:var(--blue);">The Team</h3>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar" style="background:#E8F2FF;"></div>
+          <div class="team-name">Ignat Bozhinov</div>
+          <div class="team-role">-</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:#FFF3A3;"></div>
+          <div class="team-name">Alex Florov</div>
+          <div class="team-role">-</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:#FFE8E6;"></div>
+          <div class="team-name">Hristo Dobrev</div>
+          <div class="team-role">-</div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="mission-cards">
+    <div class="mission-card">
+      <div class="mission-icon"></div>
+      <h3>Child-Centred</h3>
+      <p>Every design decision starts with the child. Fun characters, rewards, and gentle feedback keep kids motivated without pressure.</p>
+    </div>
+    <div class="mission-card">
+      <div class="mission-icon"></div>
+      <h3>Evidence-Based</h3>
+      <p>Exercises and evaluation criteria are developed in collaboration with qualified speech-language pathologists and research literature.</p>
+    </div>
+    <div class="mission-card">
+      <div class="mission-icon"></div>
+      <h3>Privacy First</h3>
+      <p>All patient data is encrypted, stored securely, and handled in compliance with GDPR. Child safety is non-negotiable.</p>
+    </div>
+  </div>
+
+  <section style="background: var(--blue); padding: 60px 80px; text-align: center;">
+    <h2 style="font-family:var(--ff-display);font-size:36px;font-weight:800;color:white;margin-bottom:16px;">Want to collaborate or learn more?</h2>
+    <p style="color:rgba(255,255,255,.75);font-size:16px;margin-bottom:28px;">We're always open to feedback from speech therapists, educators and parents.</p>
+    <a class="btn-primary" style="background:var(--yellow);color:var(--text-dark);" href="{% url 'login' %}">Contact the Team</a>
+  </section>
+
+  <footer>
+    <div>
+      {% comment %} <div class="logo-text">Speech<span>Buddy</span></div> {% endcomment %}
+      <p style="margin-top:8px;font-size:13px;">BSc Software Engineering Thesis Project, 2026</p>
+    </div>
+    <p>Built to help every child find their voice</p>
+  </footer>
+</div>
+{% endblock %}

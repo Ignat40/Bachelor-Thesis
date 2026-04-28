@@ -1,1 +1,71 @@
+{% extends "base.html" %}
 
+{% block title %}Therapist Login{% endblock %}
+
+{% block content %}
+<div id="page-login" class="page active">
+  <div class="login-page">
+    <div class="login-left">
+      <svg width="120" height="130" viewBox="0 0 120 130" fill="none" style="margin-bottom:24px" aria-hidden="true">
+        <circle cx="60" cy="55" r="40" fill="rgba(255,255,255,0.2)"/>
+        <ellipse cx="60" cy="68" rx="28" ry="22" fill="white" opacity=".9"/>
+        <circle cx="47" cy="56" r="10" fill="white"/>
+        <circle cx="73" cy="56" r="10" fill="white"/>
+        <circle cx="47" cy="56" r="6" fill="#1A6FD4"/>
+        <circle cx="73" cy="56" r="6" fill="#1A6FD4"/>
+        <circle cx="49" cy="54" r="2" fill="white"/>
+        <circle cx="75" cy="54" r="2" fill="white"/>
+        <path d="M50 70 Q60 78 70 70" stroke="#1A6FD4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <circle cx="85" cy="35" r="16" fill="#FFD600"/>
+        <text x="85" y="41" text-anchor="middle" font-size="16" fill="#1A1F2E">⭐</text>
+      </svg>
+      <h2>Welcome back, Therapist!</h2>
+      <p>Track your patients' speech journey and assign new exercises — all in one place.</p>
+      <div class="login-features">
+        <div class="login-feat">
+          <span class="login-feat-icon"></span>
+          <span class="login-feat-text">Real-time progress dashboards</span>
+        </div>
+        <div class="login-feat">
+          <span class="login-feat-icon"></span>
+          <span class="login-feat-text">Assign exercises in seconds</span>
+        </div>
+        <div class="login-feat">
+          <span class="login-feat-icon"></span>
+          <span class="login-feat-text">Instant practice alerts</span>
+        </div>
+        <div class="login-feat">
+          <span class="login-feat-icon"></span>
+          <span class="login-feat-text">Celebrate milestones together</span>
+        </div>
+      </div>
+    </div>
+    <div class="login-right">
+      <form class="login-card" method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {% comment %} <div class="login-logo">
+          <div class="logo-text">Speech<span>Buddy</span></div>
+        </div> {% endcomment %}
+        <h2>Therapist Login</h2>
+        <p class="sub">Sign in to access your patient dashboard</p>
+        {% if error %}
+          <p class="form-error">{{ error }}</p>
+        {% endif %}
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" name="username" placeholder="dr.andersen" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <div style="text-align:right;margin-bottom:8px;">
+          <a style="font-size:13px;color:var(--blue);font-weight:600;cursor:pointer;">Forgot password?</a>
+        </div>
+        <button class="login-btn" type="submit">Sign In →</button>
+        <p class="login-hint">Don't have an account? <a style="color:var(--blue);font-weight:600;cursor:pointer;">Request access</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
