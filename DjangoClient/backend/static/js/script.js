@@ -1,24 +1,5 @@
-const PATIENTS = [
-  { id: 1, name: "Goshko", age: 7, emoji: "", color: "#E8F2FF", status: "active", condition: "Articulation Disorder", sessions: 24, streak: 5, progress: 78, exercises: ["S-Sound Articulation", "Syllable Rhythm Clapping"], scores: [65, 70, 72, 75, 77, 78] },
-  { id: 2, name: "Pehsko", age: 9, emoji: "", color: "#FFF3A3", status: "pending", condition: "Phonological Disorder", sessions: 12, streak: 2, progress: 45, exercises: ["R-Sound Blending", "Breath Support Training"], scores: [30, 35, 38, 40, 43, 45] },
-  { id: 3, name: "Zdrawko", age: 6, emoji: "", color: "#FFE8E6", status: "attention", condition: "Stuttering", sessions: 31, streak: 0, progress: 55, exercises: ["Breath Support Training", "Minimal Pairs"], scores: [40, 45, 48, 50, 53, 55] },
-  { id: 4, name: "Ramadancho", age: 8, emoji: "", color: "#E8F2FF", status: "active", condition: "Articulation Disorder", sessions: 18, streak: 7, progress: 83, exercises: ["Tongue Placement Drill", "S-Sound Articulation"], scores: [55, 62, 68, 72, 78, 83] },
-  { id: 5, name: "Mariyka", age: 10, emoji: "", color: "#FFF3A3", status: "active", condition: "Voice Disorder", sessions: 9, streak: 3, progress: 62, exercises: ["Breath Support Training"], scores: [45, 50, 52, 55, 58, 62] },
-  { id: 6, name: "Emilia", age: 5, emoji: "", color: "#FFE8E6", status: "pending", condition: "Late Talker", sessions: 5, streak: 1, progress: 30, exercises: ["Syllable Rhythm Clapping", "Minimal Pairs"], scores: [20, 22, 25, 26, 28, 30] },
-  { id: 7, name: "Lorenzo", age: 7, emoji: "", color: "#E8F2FF", status: "active", condition: "Articulation Disorder", sessions: 20, streak: 4, progress: 70, exercises: ["S-Sound Articulation", "R-Sound Blending"], scores: [50, 55, 60, 63, 67, 70] },
-  { id: 8, name: "Fiki", age: 11, emoji: "", color: "#FFF3A3", status: "active", condition: "Phonological Disorder", sessions: 40, streak: 10, progress: 91, exercises: ["Tongue Placement Drill"], scores: [70, 75, 80, 84, 88, 91] },
-];
-
-const EXERCISES = [
-  { icon: "", name: "S-Sound Articulation", cat: "Articulation", diff: "Beginner", col: "blue", uses: 6, reps: 10 },
-  { icon: "", name: "R-Sound Blending", cat: "Phonology", diff: "Intermediate", col: "yellow", uses: 3, reps: 8 },
-  { icon: "", name: "Syllable Rhythm Clapping", cat: "Fluency", diff: "Beginner", col: "blue", uses: 4, reps: 15 },
-  { icon: "", name: "Breath Support Training", cat: "Fluency", diff: "Beginner", col: "red", uses: 4, reps: 5 },
-  { icon: "", name: "Tongue Placement Drill", cat: "Articulation", diff: "Advanced", col: "yellow", uses: 2, reps: 12 },
-  { icon: "", name: "Minimal Pairs Practice", cat: "Phonology", diff: "Intermediate", col: "blue", uses: 3, reps: 10 },
-  { icon: "", name: "Sentence Repetition", cat: "Language", diff: "Intermediate", col: "red", uses: 1, reps: 8 },
-  { icon: "", name: "Word Final Sounds", cat: "Articulation", diff: "Advanced", col: "yellow", uses: 2, reps: 10 },
-];
+let PATIENTS = [];
+let EXERCISES = [];
 
 function statusText(status) {
   return status === "active" ? "Active" : status === "pending" ? "Pending" : "Attention";
@@ -337,6 +318,37 @@ document.addEventListener("input", (event) => {
   });
 });
 
+async function loadDashboardData() {
+  try {
+    const response = await fetch("/therapy/api/dashboard-data/");
+    if (!response.ok) throw new Error("Dashboard data request failed");
+
+    const data = await response.json();
+    PATIENTS = data.patients || [];
+    EXERCISES = data.exercises || [];
+
+    const patientBadge = document.getElementById("patient-badge");
+    if (patientBadge) patientBadge.textContent = PATIENTS.length;
+
+    renderDash("overview");
+  } catch (error) {
+    console.error(error);
+    const container = document.getElementById("dash-main");
+    if (container) {
+      container.innerHTML = `
+      <div class="dash-header">
+        <div>
+            <h2>Dashboard unavailable</h2>
+            <div class="welcome">Could not load therapist dashboard data.</div>
+          </div>
+      </div>
+      `;
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  if (document.querySelector("[data-dashboard-page]")) renderDash("overview");
+  if (document.querySelector("[data-dashboard-page]")) {
+    loadDashboardData();
+  }
 });
