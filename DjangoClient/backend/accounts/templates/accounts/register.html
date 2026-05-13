@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Therapist Registration{% endblock %}
+
+{% block content %}
+<div id="page-register" class="page active">
+  <div class="login-page register-page">
+    <div class="login-left">
+      <svg width="120" height="130" viewBox="0 0 120 130" fill="none" style="margin-bottom:24px" aria-hidden="true">
+        <circle cx="60" cy="55" r="40" fill="rgba(255,255,255,0.2)"/>
+        <ellipse cx="60" cy="68" rx="28" ry="22" fill="white" opacity=".9"/>
+        <circle cx="47" cy="56" r="10" fill="white"/>
+        <circle cx="73" cy="56" r="10" fill="white"/>
+        <circle cx="47" cy="56" r="6" fill="#1A6FD4"/>
+        <circle cx="73" cy="56" r="6" fill="#1A6FD4"/>
+        <circle cx="49" cy="54" r="2" fill="white"/>
+        <circle cx="75" cy="54" r="2" fill="white"/>
+        <path d="M50 70 Q60 78 70 70" stroke="#1A6FD4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <circle cx="85" cy="35" r="16" fill="#FFD600"/>
+        <text x="85" y="41" text-anchor="middle" font-size="16" fill="#1A1F2E">*</text>
+      </svg>
+      <h2>Create your therapist profile</h2>
+      <p>Set up your account, connect your clinic, and start tracking patient practice from one dashboard.</p>
+      <div class="login-features">
+        <div class="login-feat">
+          <span class="login-feat-icon"></span>
+          <span class="login-feat-text">Secure therapist login</span>
+        </div>
+        <div class="login-feat">
+          <span class="login-feat-icon"></span>
+          <span class="login-feat-text">Clinic and specialization details</span>
+        </div>
+        <div class="login-feat">
+          <span class="login-feat-icon"></span>
+          <span class="login-feat-text">Patient dashboard access</span>
+        </div>
+      </div>
+    </div>
+    <div class="login-right">
+      <form class="login-card register-card" method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        <h2>{% if completing_profile %}Complete Therapist Profile{% else %}Register Therapist{% endif %}</h2>
+        <p class="sub">{% if completing_profile %}Add the missing profile details for your dashboard{% else %}Create an account for the therapist dashboard{% endif %}</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="register-first-name">Name</label>
+            <input type="text" id="register-first-name" name="first_name" value="{{ form_data.first_name }}" autocomplete="given-name" required>
+            {% if errors.first_name %}<p class="field-error">{{ errors.first_name }}</p>{% endif %}
+          </div>
+          <div class="form-group">
+            <label for="register-last-name">Surname</label>
+            <input type="text" id="register-last-name" name="last_name" value="{{ form_data.last_name }}" autocomplete="family-name" required>
+            {% if errors.last_name %}<p class="field-error">{{ errors.last_name }}</p>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" name="email" value="{{ form_data.email }}" autocomplete="email" required>
+          {% if errors.email %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+        </div>
+
+        {% if not completing_profile %}
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="register-password">Password</label>
+              <input type="password" id="register-password" name="password" autocomplete="new-password" required>
+            </div>
+            <div class="form-group">
+              <label for="register-password-confirm">Confirm password</label>
+              <input type="password" id="register-password-confirm" name="password_confirm" autocomplete="new-password" required>
+              {% if errors.password_confirm %}<p class="field-error">{{ errors.password_confirm }}</p>{% endif %}
+            </div>
+          </div>
+          <div class="password-checker" id="password-checker">
+            <span data-check="length">8+ characters</span>
+            <span data-check="number">number</span>
+            <span data-check="match">matching confirmation</span>
+          </div>
+          {% if errors.password %}
+            <div class="form-error">
+              {% for message in errors.password %}
+                <div>{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endif %}
+
+        <div class="form-group">
+          <label for="register-clinic">Clinic in Bulgaria</label>
+          <select id="register-clinic" name="clinic">
+            <option value="">Independent / not listed</option>
+            {% for clinic in clinics %}
+              <option value="{{ clinic.id }}" {% if form_data.clinic == clinic.id|stringformat:"s" %}selected{% endif %}>{{ clinic.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="register-organization">Organization or clinic name</label>
+          <input type="text" id="register-organization" name="organization" value="{{ form_data.organization }}" placeholder="Optional if clinic is selected">
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="register-specialization">Specialization</label>
+            <input type="text" id="register-specialization" name="specialization" value="{{ form_data.specialization }}" placeholder="Articulation, fluency, language">
+          </div>
+          <div class="form-group">
+            <label for="register-license">License number</label>
+            <input type="text" id="register-license" name="license_number" value="{{ form_data.license_number }}" placeholder="Optional">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="register-phone">Phone</label>
+          <input type="text" id="register-phone" name="phone" value="{{ form_data.phone }}" autocomplete="tel">
+        </div>
+
+        <button class="login-btn" type="submit">{% if completing_profile %}Save Profile{% else %}Create Account{% endif %}</button>
+        <p class="login-hint">Already registered? <a href="{% url 'login' %}" style="color:var(--blue);font-weight:600;">Sign In</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const passwordInput = document.getElementById("register-password");
+  const confirmInput = document.getElementById("register-password-confirm");
+  const checks = document.querySelectorAll("#password-checker [data-check]");
+
+  function updatePasswordChecks() {
+    const password = passwordInput.value;
+    const confirmation = confirmInput.value;
+    const state = {
+      length: password.length >= 8,
+      number: /\d/.test(password),
+      match: password.length > 0 && password === confirmation,
+    };
+
+    checks.forEach((item) => {
+      item.classList.toggle("pass", state[item.dataset.check]);
+    });
+  }
+
+  if (passwordInput && confirmInput) {
+    passwordInput.addEventListener("input", updatePasswordChecks);
+    confirmInput.addEventListener("input", updatePasswordChecks);
+    updatePasswordChecks();
+  }
+</script>
+{% endblock %}

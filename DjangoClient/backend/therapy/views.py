@@ -1,11 +1,32 @@
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import TherapistProfile, Child, Exercise, ExerciseAssignment
+from .models import TherapistProfile, Child, Exercise, ExerciseAssignment, Clinic
+
+
+def sofia_clinics_api(request):
+    clinics = Clinic.objects.all().order_by('city', 'name')
+    data = [
+        {
+            'id': clinic.id,
+            'name': clinic.name,
+            'city': clinic.city,
+            'address': clinic.address,
+            'website': clinic.website,
+            'phone': clinic.phone,
+        }
+        for clinic in clinics
+    ]
+    return JsonResponse({'clinics': data})
 
 
 @login_required
 def dashboard(request):
-    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    try:
+        therapist = TherapistProfile.objects.get(user=request.user)
+    except TherapistProfile.DoesNotExist:
+        return redirect('register')
+
     children = Child.objects.filter(therapist=therapist)
     assignments = ExerciseAssignment.objects.filter(child__therapist=therapist)
 
