@@ -1,11 +1,14 @@
 import json
+from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
 from .models import TherapistProfile, Child, Exercise, ExerciseAssignment, ExerciseSession, Clinic
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
 def sofia_clinics_api(request):
@@ -131,14 +134,23 @@ def dashboard_data_api(request):
     patients = []
     for child in children:
         assignments = list(child.assignments.all())
-        sessions = [
+        sessions = sorted([
             session
             for assignment in assignments
             for session in assignment.sessions.all()
-        ]
+        ], key=lambda session: session.finished_at)
 
         scores = [round(session.score) for session in sessions]
         latest_score = scores[-1] if scores else 0
+        session_dates = sorted({timezone.localdate(session.finished_at) for session in sessions}, reverse=True)
+        streak = 0
+        cursor_day = timezone.localdate()
+        for session_day in session_dates:
+            if session_day == cursor_day:
+                streak += 1
+                cursor_day -= timedelta(days=1)
+            elif session_day < cursor_day:
+                break
 
         if not sessions:
             status = 'pending'
@@ -153,7 +165,7 @@ def dashboard_data_api(request):
             'age': child.age,
             'condition': child.diagnosis_notes or 'Not specified',
             'sessions': len(sessions),
-            'streak': 0,
+            'streak': streak,
             'progress': latest_score,
             'scores': scores[-6:],
             'exercises': [assignment.exercise.title for assignment in assignments],
@@ -162,35 +174,138 @@ def dashboard_data_api(request):
             'color': '#E8F2FF',
         })
 
-    exercises = []
     therapist_assignments = ExerciseAssignment.objects.filter(
         child__therapist=therapist
     ).select_related('exercise')
 
-    seen_exercises = {}
+    exercise_usage = {}
     for assignment in therapist_assignments:
-        exercise = assignment.exercise
-        if exercise.id not in seen_exercises:
-            seen_exercises[exercise.id] = {
-                'id': exercise.id,
-                'icon': '',
-                'name': exercise.title,
-                'cat': exercise.category or 'General',
-                'diff': 'Beginner' if exercise.difficulty == 1 else 'Intermediate' if exercise.difficulty == 2 else 'Advanced',
-                'col': 'blue',
-                'uses': 0,
-                'reps': assignment.repetitions,
-            }
-        seen_exercises[exercise.id]['uses'] += 1
+        exercise_usage[assignment.exercise_id] = exercise_usage.get(assignment.exercise_id, 0) + 1
 
-    exercises = list(seen_exercises.values())
+    exercises = [
+        {
+            'id': exercise.id,
+            'icon': '',
+            'name': exercise.title,
+            'cat': exercise.category or 'General',
+            'diff': 'Beginner' if exercise.difficulty == 1 else 'Intermediate' if exercise.difficulty == 2 else 'Advanced',
+            'col': 'blue',
+            'uses': exercise_usage.get(exercise.id, 0),
+            'reps': 1,
+        }
+        for exercise in Exercise.objects.all().order_by('title')
+    ]
+    
+    recent_sessions = ExerciseSession.objects.filter(
+        assignment__child__therapist=therapist
+    ).select_related(
+        'assignment__child',
+        'assignment__exercise',
+    ).order_by('-finished_at')[:5]
+
+    activities = [
+        {
+            'type': 'completed',
+            'patient_name': str(session.assignment.child),
+            'exercise_title': session.assignment.exercise.title,
+            'score': round(session.score),
+            'correct_answers': session.correct_answers,
+            'total_questions': session.total_questions,
+            'time': session.finished_at.strftime('%d %b %Y %H:%M'),
+        }
+        for session in recent_sessions
+    ]
+        
+    today = timezone.localdate()
+    week_start = today - timedelta(days=today.weekday())
+
+    active_child_ids_this_week = set(
+        ExerciseSession.objects.filter(
+            assignment__child__therapist=therapist,
+            finished_at__date__gte=week_start,
+        ).values_list('assignment__child_id', flat=True)
+    )
+
+    total_patients = len(patients)
+    active_this_week = len(active_child_ids_this_week)
+    need_attention = sum(1 for patient in patients if patient['status'] == 'attention')
+    
+    progress_values = [
+        patient['progress']
+        for patient in patients
+        if patient['sessions'] > 0
+    ]
+
+    avg_progress = round(sum(progress_values) / len(progress_values) if progress_values else 0)
+
+    total_sessions = ExerciseSession.objects.filter(
+        assignment__child__therapist=therapist
+    ).count()
+
+    completed_assignments = ExerciseAssignment.objects.filter(
+        child__therapist=therapist,
+        status='completed',
+    ).count()
+
+    weekly_sessions = []
+    for day_offset in range(7):
+        day = week_start + timedelta(days=day_offset)
+        count = ExerciseSession.objects.filter(
+            assignment__child__therapist=therapist,
+            finished_at__date=day,
+        ).count()
+        
+        weekly_sessions.append({
+            'day': day.strftime('%a'),
+            'count': count,
+        })
+
+    alerts = []
+    for patient in patients:
+        if patient['status'] == 'attention':
+            alerts.append({
+                'type': 'attention',
+                'title': f"{patient['name']} needs attention",
+                'detail': f"Latest score is {patient['progress']}%. Consider reviewing the assignment difficulty.",
+                'time': 'Latest session',
+            })
+        elif patient['status'] == 'pending':
+            alerts.append({
+                'type': 'pending',
+                'title': f"{patient['name']} has no logged sessions",
+                'detail': 'An exercise is assigned, but Unity has not uploaded practice results yet.',
+                'time': 'Waiting for first session',
+            })
+
+    for activity in activities:
+        if activity['score'] >= 90:
+            alerts.append({
+                'type': 'active',
+                'title': f"{activity['patient_name']} reached {activity['score']}%",
+                'detail': f"Strong result on {activity['exercise_title']}.",
+                'time': activity['time'],
+            })
+
+    alerts = alerts[:8]
 
     return JsonResponse({
         'patients': patients,
         'exercises': exercises,
+        'stats': {
+            'total_patients': total_patients,
+            'active_this_week': active_this_week,
+            'avg_progress': avg_progress,
+            'need_attention': need_attention,
+            'total_sessions': total_sessions,
+            'completed_assignments': completed_assignments,
+        },
+        'activities': activities,
+        'weekly_sessions': weekly_sessions,
+        'alerts': alerts,
     })
 
 @login_required
+@ensure_csrf_cookie
 def dashboard(request):
     try:
         therapist = TherapistProfile.objects.get(user=request.user)
@@ -207,6 +322,42 @@ def dashboard(request):
         'children': children[:5],
     }
     return render(request, 'therapy/dashboard.html', context)
+
+
+@login_required
+def create_assignment_api(request):
+    if request.method != 'POST':
+        return JsonResponse({
+            'created': False,
+            'message': 'Only POST requests are allowed.'
+        }, status=405)
+
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'created': False,
+            'message': 'Invalid JSON payload.'
+        }, status=400)
+
+    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    child = get_object_or_404(Child, id=payload.get('child_id'), therapist=therapist)
+    exercise = get_object_or_404(Exercise, id=payload.get('exercise_id'))
+    repetitions = int(payload.get('repetitions') or 1)
+
+    assignment = ExerciseAssignment.objects.create(
+        child=child,
+        exercise=exercise,
+        repetitions=max(repetitions, 1),
+    )
+
+    return JsonResponse({
+        'created': True,
+        'assignment_id': assignment.id,
+        'child_id': child.id,
+        'exercise_id': exercise.id,
+        'message': f'{exercise.title} assigned to {child}.',
+    }, status=201)
 
 
 @login_required

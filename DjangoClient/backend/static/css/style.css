@@ -1632,3 +1632,27 @@ td {
     padding: 20px;
   }
 }
+.bar {
+  position: relative;
+}
+.bar-value {
+  background: var(--text-dark);
+  border-radius: 999px;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  left: 50%;
+  opacity: 0;
+  padding: 3px 7px;
+  pointer-events: none;
+  position: absolute;
+  top: -28px;
+  transform: translateX(-50%);
+  transition: opacity 0.15s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.bar:hover .bar-value {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
+}
