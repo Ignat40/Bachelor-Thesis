@@ -45,8 +45,24 @@ def assignment_exercise_api(request, assignment_id):
         'exercise_title': assignment.exercise.title,
         'template_json': assignment.exercise.template_json,
     })
+    
+def assignment_template_api(request, assignment_id):
+    try:
+        assignment = ExerciseAssignment.objects.select_related('exercise').get(id=assignment_id)
+    except ExerciseAssignment.DoesNotExist:
+        return JsonResponse({
+            'found': False, 
+            'message': f'No assignment found with id {assignment_id}'
+        }, status=404)
 
+    if not assignment.exercise.template_json:
+        return JsonResponse({
+            'found': False,
+            'message': f'Assignment {assignment_id} has no exercise template JSON'
+        }, status=404)
 
+    return JsonResponse(assignment.exercise.template_json)
+    
 # Unity does not have Django's browser CSRF token in this prototype.
 @csrf_exempt
 def create_exercise_session_api(request):

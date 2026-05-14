@@ -22,4 +22,9 @@ urlpatterns = [
         views.dashboard_data_api,
         name='dashboard_data_api'
     ),
+    path(
+        'api/assignment/<int:assignment_id>/template/',
+        views.assignment_template_api,
+        name='assignment_template_api'
+    ),
 ]
