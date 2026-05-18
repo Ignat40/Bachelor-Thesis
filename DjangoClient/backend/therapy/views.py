@@ -9,6 +9,8 @@ from .models import TherapistProfile, Child, Exercise, ExerciseAssignment, Exerc
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.shortcuts import render, redirect #need it for testing
+from .forms import exerciseForm #forms 
 
 
 def sofia_clinics_api(request):
@@ -402,3 +404,47 @@ def assign_exercise(request, child_id):
         'child': child,
         'exercises': exercises,
     })
+
+
+'''def create_exercise(request):
+    if request.method == 'POST':
+        form = exerciseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            #return redirect('somewhere') # redirects to somewhere, success page? no idea for now
+    else:
+        form = exerciseForm()
+        return render(request, 'therapy/exercise_form.html', {'form': form})
+    #return render(request, 'somewhere.html') # working on redirects.'''
+
+def create_exercise(request):
+    if request.method == 'POST':
+        form = exerciseForm(request.POST)
+        
+        if form.is_valid():
+            #Create the instance but pause before saving to the database (testing)
+            exercise_instance = form.save(commit=False)
+            
+            #Manually extract the hidden json string submitted by the JS
+            raw_json_string = request.POST.get('template_json_raw')
+            
+            #Parse the string into a Python dictionary and assign it
+            if raw_json_string:
+                try:
+                    exercise_instance.template_json = json.loads(raw_json_string)
+                except json.JSONDecodeError:
+                    #fallback
+                    exercise_instance.template_json = {}
+            else:
+                exercise_instance.template_json = {}
+                
+            #Save the assembled object to the database
+            exercise_instance.save()
+            
+            #Redirect to clear the form to smwhere. testing still
+            return redirect(request.path) 
+    else:
+        #Handle the initial GET request
+        form = exerciseForm()
+        
+    return render(request, 'therapy/exercise_form.html', {'form': form})
