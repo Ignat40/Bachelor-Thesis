@@ -4,7 +4,7 @@ let DASHBOARD_STATS = {
   total_patients: 0,
   active_this_week: 0,
   avg_progress: 0,
-  need_attention: 0, 
+  need_attention: 0,
 }
 let ACTIVITIES = []
 let WEEKLY_SESSIONS = [];
@@ -57,7 +57,7 @@ function overviewHTML() {
   return `
     <div class="dash-header">
       <div><h2>${greetingText()}, ${therapist}</h2><div class="welcome">${todayText()} · Here's how your patients are doing</div></div>
-      <button class="dash-btn" type="button" data-open-modal>+ Assign Exercise</button>
+      <button class="dash-btn" type="button" data-open-modal>Assign Exercise</button>
     </div>
       <div class="stats-row">
       <div class="stat-card s-blue"><div class="stat-label">Total Patients</div><div class="stat-value">${DASHBOARD_STATS.total_patients}</div><div class="stat-delta up">Tracked patients</div></div>
@@ -99,7 +99,7 @@ function patientsHTML() {
   return `
     <div class="dash-header">
       <div><h2>My Patients</h2><div class="welcome">${PATIENTS.length} patients under your care</div></div>
-      <button class="dash-btn" type="button" data-open-modal>+ Assign Exercise</button>
+      <button class="dash-btn" type="button" data-open-modal>Assign Exercise</button>
     </div>
     <div class="card">
       <div class="card-header"><div class="card-title">All Patients</div><input type="text" placeholder="Search patients..." style="width:220px;padding:7px 12px;font-size:13px" data-patient-filter></div>
@@ -156,14 +156,14 @@ function weeklySessionsHTML() {
   const values = WEEKLY_SESSIONS.length
     ? WEEKLY_SESSIONS
     : [
-        { day: "Mon", count: 0 },
-        { day: "Tue", count: 0 },
-        { day: "Wed", count: 0 },
-        { day: "Thu", count: 0 },
-        { day: "Fri", count: 0 },
-        { day: "Sat", count: 0 },
-        { day: "Sun", count: 0 },
-      ];
+      { day: "Mon", count: 0 },
+      { day: "Tue", count: 0 },
+      { day: "Wed", count: 0 },
+      { day: "Thu", count: 0 },
+      { day: "Fri", count: 0 },
+      { day: "Sat", count: 0 },
+      { day: "Sun", count: 0 },
+    ];
 
   const maxCount = Math.max(...values.map((item) => item.count), 1);
 
@@ -204,7 +204,13 @@ function exercisesHTML() {
 
   return `
     <div class="dash-header">
-      <div><h2>Exercise Library</h2><div class="welcome">${EXERCISES.length} exercises available</div></div>
+      <div>
+        <h2>Exercise Library</h2>
+        <div class="welcome">${EXERCISES.length} exercises available</div>
+      </div>
+      
+      <button class="dash-btn" type="button" data-open-create-modal>Create Exercise</button>
+      
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
       ${exerciseCards}
@@ -302,7 +308,7 @@ function openPatient(id) {
     <div class="panel-section-title">Therapist Notes</div>
     <textarea class="note-area" placeholder="Add notes about this patient..."></textarea>
     <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="dash-btn" type="button" style="flex:1" data-open-modal data-assign-child-id="${patient.id}">+ Assign Exercise</button>
+      <button class="dash-btn" type="button" style="flex:1" data-open-modal data-assign-child-id="${patient.id}">Assign Exercise</button>
     </div>`;
   document.getElementById("patient-panel")?.classList.add("open");
 }
@@ -346,6 +352,30 @@ document.addEventListener("click", (event) => {
   if (openModalButton) {
     event.stopPropagation();
     openModal(openModalButton.dataset.assignChildId || "", openModalButton.dataset.assignExerciseId || "");
+  }
+
+
+  if (event.target.closest("[data-open-create-modal]")) {
+    document.getElementById("create-exercise-modal")?.classList.add("open");
+    resetExerciseBuilder();
+  }
+
+  if (event.target.closest("[data-close-create-modal]")) {
+    document.getElementById("create-exercise-modal")?.classList.remove("open");
+  }
+
+  if (event.target.id === "add-question-btn") addQuestionBlock();
+
+  if (event.target.id === "submit-new-exercise") submitNewExercise();
+
+  if (event.target.closest(".remove-block-btn")) event.target.closest('.question-block').remove();
+  if (event.target.closest(".remove-row-btn")) event.target.closest('.dynamic-row-item').remove();
+
+  if (event.target.closest(".add-mc-row-btn")) addMCRow(event.target.closest('.add-mc-row-btn'));
+  if (event.target.closest(".add-open-row-btn")) addOpenRow(event.target.closest('.add-open-row-btn'));
+  if (event.target.closest(".add-pair-row-btn")) {
+    const type = document.getElementById('globalType').value;
+    addPairRow(event.target.closest('.add-pair-row-btn'), type === 'CONNECTIONS' ? 'Target' : 'Group');
   }
 
   if (event.target.closest("[data-close-modal]")) closeModal();
@@ -456,3 +486,217 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDashboardData();
   }
 });
+
+document.addEventListener("change", (event) => {
+  if (event.target.id === "globalType") changeExerciseType();
+});
+
+
+let exerciseQuestionCount = 0;
+
+function resetExerciseBuilder() {
+    document.getElementById('ex_title').value = '';
+    document.getElementById('ex_category').value = '';
+    document.getElementById('ex_difficulty').value = '1';
+    document.getElementById('ex_description').value = '';
+
+    document.getElementById('globalType').value = 'MULTIPLE_CHOICE';
+    document.getElementById('exp_text').value = '';
+    
+    changeExerciseType();
+}
+
+function changeExerciseType() {
+  const type = document.getElementById('globalType').value;
+  const header = document.getElementById('questionsHeader');
+  if (header) header.innerText = type.replace('_', ' ') + " Questions";
+
+  const container = document.getElementById('exercisesContainer');
+  if (container) container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin: 30px 0; font-size: 14px;" id="emptyMessage">No questions added yet. Click "Add Question" to begin.</p>';
+  exerciseQuestionCount = 0;
+
+  const warning = document.getElementById('typeWarning');
+  if (warning) {
+    warning.style.display = 'block';
+    setTimeout(() => warning.style.display = 'none', 3000);
+  }
+}
+
+function addQuestionBlock() {
+  const emptyMsg = document.getElementById('emptyMessage');
+  if (emptyMsg) emptyMsg.style.display = 'none';
+
+  exerciseQuestionCount++;
+  const type = document.getElementById('globalType').value;
+  const container = document.getElementById('exercisesContainer');
+
+  const block = document.createElement('div');
+  block.className = 'card question-block';
+  block.style.marginBottom = '20px';
+  block.style.border = '1.5px solid var(--blue)';
+
+  let innerFields = '';
+  let addBtnHtml = '';
+
+  if (type === 'MULTIPLE_CHOICE') {
+    innerFields = `<div style="margin-bottom:8px;"><label>Target Word</label><input type="text" class="w-text" placeholder="Mail" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border);"></div>`;
+    addBtnHtml = `<button type="button" class="dash-btn add-mc-row-btn" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Option</button>`;
+  } else if (type === 'OPEN_QUESTION') {
+    innerFields = `<div style="margin-bottom:8px;"><label>Target Word</label><input type="text" class="w-text" placeholder="Knight" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border);"></div>`;
+    addBtnHtml = `<button type="button" class="dash-btn add-open-row-btn" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Valid Answer</button>`;
+  } else if (type === 'CONNECTIONS' || type === 'GROUPING') {
+    addBtnHtml = `<button type="button" class="dash-btn add-pair-row-btn" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Pair</button>`;
+  }
+
+  block.innerHTML = `
+        <div class="card-header" style="background: var(--blue-pale); padding: 10px 16px;">
+            <div class="card-title" style="font-size: 14px; color: var(--blue);">Question #${exerciseQuestionCount}</div>
+            <button type="button" class="remove-block-btn" style="background:none; border:none; color:var(--red); font-size:12px; font-weight:700; cursor:pointer;">✕ Remove</button>
+        </div>
+        <div class="card-body" style="padding: 16px;">
+            <div style="margin-bottom: 16px;">
+                <label>Question / Instructions</label>
+                <input type="text" class="q-text" placeholder="Choose whether the Word contains 'M' or 'N'" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+            </div>
+            ${innerFields}
+            <div style="background: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-top: 12px;">
+                <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light);">Options / Answers</label>
+                <div class="dynamic-rows"></div>
+                ${addBtnHtml}
+            </div>
+        </div>
+    `;
+  container.appendChild(block);
+
+  const btn = block.querySelector('.dash-btn');
+  if (btn) btn.click();
+}
+
+function addMCRow(btn) {
+  const row = document.createElement('div');
+  row.className = 'dynamic-row-item mc-row';
+  row.style = 'display: flex; gap: 8px; margin-top: 8px; align-items: center;';
+  row.innerHTML = `
+        <input type="text" class="opt-text" placeholder="Option" style="flex:2; padding:8px; border-radius:6px; border:1px solid var(--border);">
+        <select class="opt-correct" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border);">
+            <option value="false">Incorrect</option><option value="true">Correct</option>
+        </select>
+        <button type="button" class="remove-row-btn" style="background:var(--red-light); color:var(--red); border:none; border-radius:6px; width:34px; height:34px; cursor:pointer; font-weight:bold;">✕</button>`;
+  btn.parentElement.querySelector('.dynamic-rows').appendChild(row);
+}
+
+function addOpenRow(btn) {
+  const row = document.createElement('div');
+  row.className = 'dynamic-row-item open-row';
+  row.style = 'display: flex; gap: 8px; margin-top: 8px; align-items: center;';
+  row.innerHTML = `
+        <input type="text" class="open-ans" placeholder="Answer" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border);">
+        <button type="button" class="remove-row-btn" style="background:var(--red-light); color:var(--red); border:none; border-radius:6px; width:34px; height:34px; cursor:pointer; font-weight:bold;">✕</button>`;
+  btn.parentElement.querySelector('.dynamic-rows').appendChild(row);
+}
+
+function addPairRow(btn, targetLabel) {
+  const row = document.createElement('div');
+  row.className = 'dynamic-row-item pair-row';
+  row.style = 'display: flex; gap: 8px; margin-top: 8px; align-items: center;';
+  row.innerHTML = `
+        <input type="text" class="pair-word" placeholder="Word" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border);">
+        <span style="font-size:12px; color:var(--text-light);">➔</span>
+        <input type="text" class="pair-target" placeholder="${targetLabel}" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border);">
+        <button type="button" class="remove-row-btn" style="background:var(--red-light); color:var(--red); border:none; border-radius:6px; width:34px; height:34px; cursor:pointer; font-weight:bold;">✕</button>`;
+  btn.parentElement.querySelector('.dynamic-rows').appendChild(row);
+}
+
+function submitNewExercise() {
+  const globalType = document.getElementById('globalType').value;
+  let payload = {
+    "Explination_Text": document.getElementById('exp_text').value,
+    "Exercises": []
+  };
+
+  const blocks = document.querySelectorAll('.question-block');
+  blocks.forEach(block => {
+    let exerciseData = {
+      "Type": globalType,
+      "Question": block.querySelector('.q-text').value || "",
+      "Words": [],
+      "Options": []
+    };
+
+    if (globalType === 'MULTIPLE_CHOICE' || globalType === 'OPEN_QUESTION') {
+      let wText = block.querySelector('.w-text').value;
+      if (wText) exerciseData.Words.push({ "Text": wText });
+
+      if (globalType === 'MULTIPLE_CHOICE') {
+        block.querySelectorAll('.mc-row').forEach(row => {
+          let text = row.querySelector('.opt-text').value;
+          let isCorrect = row.querySelector('.opt-correct').value === "true";
+          if (text) exerciseData.Options.push({ "Text": text, "Is_Correct": isCorrect });
+        });
+      } else {
+        block.querySelectorAll('.open-row').forEach(row => {
+          let ansVal = row.querySelector('.open-ans').value;
+          if (!isNaN(ansVal) && ansVal.trim() !== "") {
+            exerciseData.Options.push({ "Correct_Answer_Number": Number(ansVal) });
+          } else if (ansVal.trim() !== "") {
+            exerciseData.Options.push({ "Correct_Answer_Text": ansVal });
+          }
+        });
+      }
+    }
+    else if (globalType === 'CONNECTIONS' || globalType === 'GROUPING') {
+      block.querySelectorAll('.pair-row').forEach(row => {
+        let word = row.querySelector('.pair-word').value;
+        let target = row.querySelector('.pair-target').value;
+        if (word && target) {
+          exerciseData.Words.push({ "Text": word });
+          if (globalType === 'CONNECTIONS') {
+            exerciseData.Options.push({ "Word": word, "Connected_Words": [target] });
+          } else {
+            exerciseData.Options.push({ "Word": word, "Group": target });
+          }
+        }
+      });
+    }
+
+    if (exerciseData.Options.length > 0 || exerciseData.Question !== "") {
+      payload.Exercises.push(exerciseData);
+    }
+  });
+
+    const formTitle = document.getElementById('ex_title').value.trim() || "No Title";
+    const formCategory = document.getElementById('ex_category').value.trim() || "No Category";
+    const formDifficulty = parseInt(document.getElementById('ex_difficulty').value) || 1;
+    const formDescription = document.getElementById('ex_description').value.trim() || "No Description";
+
+    console.log("Saving Exercise JSON Payload:", JSON.stringify(payload, null, 2));
+
+    fetch('/therapy/exercise/api/create/', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'X-CSRFToken': getCookie("csrftoken") 
+        },
+        body: JSON.stringify({ 
+            template_json: payload, 
+            title: formTitle,
+            description: formDescription,
+            category: formCategory,
+            difficulty: formDifficulty
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById("create-exercise-modal")?.classList.remove("open");
+            showToast("Exercise Created Successfully!", "success");
+            loadDashboardData();
+        } else {
+            showToast("Error: " + data.message, "danger");
+        }
+    })
+    .catch(error => {
+        console.error("Fetch Error:", error);
+        showToast("Network error while saving.", "danger");
+    });
+}

@@ -32,5 +32,5 @@ urlpatterns = [
         views.assignment_template_api,
         name='assignment_template_api'
     ),
-    path('exercise/create/', views.create_exercise, name='create_exercise'),
+    path('exercise/api/create/', views.create_exercise, name='api_create_exercise'),
 ]

@@ -10,7 +10,8 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, redirect #need it for testing
-from .forms import exerciseForm #forms 
+from .forms import exerciseForm #forms and testing
+import json
 
 
 def sofia_clinics_api(request):
@@ -418,33 +419,39 @@ def assign_exercise(request, child_id):
     #return render(request, 'somewhere.html') # working on redirects.'''
 
 def create_exercise(request):
+    #from the fetch() in the script function for the exercises 
     if request.method == 'POST':
-        form = exerciseForm(request.POST)
-        
-        if form.is_valid():
-            #Create the instance but pause before saving to the database (testing)
-            exercise_instance = form.save(commit=False)
+        try:
+            data = json.loads(request.body)
+
+            template_json = data.get('template_json', {})
             
-            #Manually extract the hidden json string submitted by the JS
-            raw_json_string = request.POST.get('template_json_raw')
+            #get the db fields
+            title = data.get('title', 'Untitled Dashboard Exercise')
+            description = data.get('description', 'Created via the SPA Dashboard')
+            category = data.get('category', 'Uncategorized')
+            difficulty = data.get('difficulty', 1)
             
-            #Parse the string into a Python dictionary and assign it
-            if raw_json_string:
-                try:
-                    exercise_instance.template_json = json.loads(raw_json_string)
-                except json.JSONDecodeError:
-                    #fallback
-                    exercise_instance.template_json = {}
-            else:
-                exercise_instance.template_json = {}
-                
-            #Save the assembled object to the database
-            exercise_instance.save()
+            #create ans save to db
+            exercise_instance = Exercise.objects.create(
+                title=title,
+                description=description,
+                category=category,
+                difficulty=difficulty,
+                template_json=template_json
+            )
             
-            #Redirect to clear the form to smwhere. testing still
-            return redirect(request.path) 
-    else:
-        #Handle the initial GET request
-        form = exerciseForm()
-        
-    return render(request, 'therapy/exercise_form.html', {'form': form})
+            #return a success signal
+            return JsonResponse({
+                'success': True, 
+                'message': 'Exercise saved successfully!',
+                'exercise_id': exercise_instance.id
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format sent from frontend.'}, status=400)
+        except Exception as e:
+            #$catvch db erroprs
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+            
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
