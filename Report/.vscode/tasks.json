@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "LaTeX: build with tectonic",
+      "type": "shell",
+      "command": "tectonic",
+      "args": [
+        "--synctex",
+        "--keep-logs",
+        "--keep-intermediates",
+        "--outdir",
+        "build",
+        "main.tex"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LaTeX: clean build files",
+      "type": "shell",
+      "command": "latexmk",
+      "args": [
+        "-C",
+        "-outdir=build",
+        "main.tex"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{cite}
+\usepackage{cleveref}
+
+\geometry{
+  left=30mm,
+  right=25mm,
+  top=25mm,
+  bottom=25mm
+}
+
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8em}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue,
+  pdftitle={Mobile Application for Supporting Children with Speech Impairments Through Guided Practice},
+  pdfauthor={Alex Florov, Hristo Dobrev, Ignat Bozhinov}
+}
+
+\begin{document}
+
+\pagenumbering{arabic}
+\begin{titlepage}
+  \thispagestyle{plain}
+  \setcounter{page}{1}
+  \setlength{\parskip}{0pt}
+  \singlespacing
+
+  \begin{flushleft}
+    \includegraphics[width=0.36\textwidth]{figures/sdu-logo-dk.png}
+  \end{flushleft}
+
+  \vspace{0.65cm}
+
+  \begin{center}
+    \hrule
+    \vspace{0.65cm}
+    {\LARGE\bfseries Bachelor Project Report:\par}
+    \vspace{0.4cm}
+    {\Large\textit{Mobile Application for Supporting Children\\
+    with Speech Impairments Through Guided Practice}\par}
+    \vspace{0.65cm}
+    \hrule
+    
+    \vspace{3cm}
+
+    
+    \vspace{0.55cm}
+
+    \vspace{0.65cm}
+
+    {\Large\bfseries Project Authors:\par}
+    \vspace{0.3cm}
+    {\normalsize Alex Florov (\href{mailto:alflo@student.sdu.dk}{alflo@student.sdu.dk})\par}
+    \vspace{0.16cm}
+    {\normalsize Hristo Dobrev (\href{mailto:hrdob@student.sdu.dk}{hrdob@student.sdu.dk})\par}
+    \vspace{0.16cm}
+    {\normalsize Ignat Bozhinov (\href{mailto:igboz@student.sdu.dk}{igboz@student.sdu.dk})\par}
+
+    \vspace{0.65cm}
+
+    {\Large\bfseries Project Supervisor:\par}
+    \vspace{0.3cm}
+    {\large Adam Alami (\href{mailto:adal@mmmi.sdu.dk}{adal@mmmi.sdu.dk}) \par}
+
+
+    \vspace{3cm}
+    {\large\bfseries February 8, 2026\par}
+    
+  \end{center}
+\end{titlepage}
+
+\pagenumbering{roman}
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+Write the abstract after the rest of the report is mostly complete. Summarise the problem, the proposed mobile application, the main implementation choices, the evaluation, and the most important outcomes in approximately 150--250 words.
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\clearpage
+\pagenumbering{arabic}
+
+\include{chapters/01_introduction}
+\include{chapters/02_project_background}
+\include{chapters/03_problem_statement}
+\include{chapters/04_proposed_solution}
+\include{chapters/05_implementation}
+\include{chapters/06_software_engineering_practices}
+\include{chapters/07_discussion}
+\include{chapters/08_conclusion}
+
+\appendix
+\include{appendices/appendix_a}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

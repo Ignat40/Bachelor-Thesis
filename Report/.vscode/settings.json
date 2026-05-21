@@ -1,0 +1,55 @@
+{
+  "latex-workshop.latex.rootFile.useSubFile": false,
+  "latex-workshop.latex.rootFile.indicator": "main.tex",
+  "latex-workshop.latex.outDir": "%DIR%/build",
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "latex-workshop.latex.autoClean.run": "onBuilt",
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.intellisense.citation.backend": "bibtex",
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "tectonic",
+      "tools": [
+        "tectonic"
+      ]
+    }
+  ],
+  "latex-workshop.latex.tools": [
+    {
+      "name": "tectonic",
+      "command": "tectonic",
+      "args": [
+        "--synctex",
+        "--keep-logs",
+        "--keep-intermediates",
+        "--outdir",
+        "%OUTDIR%",
+        "%DIR%/main.tex"
+      ]
+    }
+  ],
+  "files.associations": {
+    "*.tex": "latex",
+    "*.bib": "bibtex"
+  },
+  "editor.wordWrap": "on",
+  "editor.rulers": [
+    100
+  ],
+  "editor.formatOnSave": false,
+  "cSpell.language": "en-GB",
+  "cSpell.words": [
+    "Florov",
+    "Hristo",
+    "Ignat",
+    "Bozhinov",
+    "Alami",
+    "caregiver",
+    "caregivers",
+    "backend",
+    "artefacts",
+    "summarising",
+    "summarise"
+  ],
+  "ltex.language": "en-GB"
+}
