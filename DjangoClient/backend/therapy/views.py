@@ -9,6 +9,9 @@ from .models import TherapistProfile, Child, Exercise, ExerciseAssignment, Exerc
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.shortcuts import render, redirect #need it for testing
+from .forms import exerciseForm #forms and testing
+import json
 
 
 def sofia_clinics_api(request):
@@ -402,3 +405,53 @@ def assign_exercise(request, child_id):
         'child': child,
         'exercises': exercises,
     })
+
+
+'''def create_exercise(request):
+    if request.method == 'POST':
+        form = exerciseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            #return redirect('somewhere') # redirects to somewhere, success page? no idea for now
+    else:
+        form = exerciseForm()
+        return render(request, 'therapy/exercise_form.html', {'form': form})
+    #return render(request, 'somewhere.html') # working on redirects.'''
+
+def create_exercise(request):
+    #from the fetch() in the script function for the exercises 
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            template_json = data.get('template_json', {})
+            
+            #get the db fields
+            title = data.get('title', 'Untitled Dashboard Exercise')
+            description = data.get('description', 'Created via the SPA Dashboard')
+            category = data.get('category', 'Uncategorized')
+            difficulty = data.get('difficulty', 1)
+            
+            #create ans save to db
+            exercise_instance = Exercise.objects.create(
+                title=title,
+                description=description,
+                category=category,
+                difficulty=difficulty,
+                template_json=template_json
+            )
+            
+            #return a success signal
+            return JsonResponse({
+                'success': True, 
+                'message': 'Exercise saved successfully!',
+                'exercise_id': exercise_instance.id
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format sent from frontend.'}, status=400)
+        except Exception as e:
+            #$catvch db erroprs
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+            
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)

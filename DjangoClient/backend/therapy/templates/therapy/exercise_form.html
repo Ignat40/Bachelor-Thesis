@@ -1,0 +1,322 @@
+<!-- I know its AI for now. I just need it for testing purposes. I have another Idea for the forms -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Exercise</title>
+    <!-- Quick Bootstrap CSS for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Create New Exercise</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- The HTML Form -->
+                        <form method="POST" novalidate>
+                            {% csrf_token %}
+
+                            <!-- Title Field -->
+                            <div class="mb-3">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Description Field -->
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Category Field -->
+                            <div class="mb-3">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                <div class="text-danger small">{{ form.category.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Difficulty Field -->
+                            <div class="mb-3">
+                                <label for="{{ form.difficulty.id_for_label }}" class="form-label">Difficulty
+                                    Level</label>
+                                {{ form.difficulty }}
+                                {% if form.difficulty.errors %}
+                                <div class="text-danger small">{{ form.difficulty.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success">Save Exercise</button>
+                            </div>
+
+                            <!-- Hidden field for Django to catch the final JSON (also down it is ai, im just testing it for now) -->
+                            <input type="hidden" id="template_json_raw" name="template_json_raw">
+
+                            <div class="row mt-4">
+                                
+                                <div class="col-12 mb-4">
+                                    <div class="card shadow-sm border-secondary">
+                                        <div class="card-header bg-secondary text-white py-2">
+                                            <h6 class="mb-0">General Configuration</h6>
+                                        </div>
+                                        <div class="card-body row">
+                                            <!--Type Selector-->
+                                            <div class="col-md-4 mb-3 mb-md-0">
+                                                <label class="form-label fw-bold">Master Exercise Type</label>
+                                                <select id="globalType" class="form-select"
+                                                    onchange="changeExerciseType()">
+                                                    <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+                                                    <option value="OPEN_QUESTION">Open Question</option>
+                                                    <option value="CONNECTIONS">Connections</option>
+                                                    <option value="GROUPING">Grouping</option>
+                                                </select>
+                                                <small class="text-danger" id="typeWarning"
+                                                    style="display: none;">Changing the type resets every question!</small>
+                                            </div>
+
+                                            <!--Explanation-->
+                                            <div class="col-md-8">
+                                                <label class="form-label fw-bold">Explanation Text</label>
+                                                <textarea id="exp_text" class="form-control" rows="2"
+                                                    placeholder="e.g., This is how you can differentiate between M and N."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- (ai, no clue tbh) DYNAMIC EXERCISE BUILDER (Adapts to Master Type) -->
+                                <div class="col-12">
+                                    <div class="card shadow-sm">
+                                        <div
+                                            class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
+                                            <h5 class="mb-0" id="questionsHeader">Multiple Choice Questions</h5>
+                                            <button type="button" class="btn btn-light btn-sm"
+                                                onclick="addQuestionBlock()">+ Add Question</button>
+                                        </div>
+
+                                        <div class="card-body bg-light" id="exercisesContainer">
+                                            <p class="text-muted text-center my-4" id="emptyMessage">No questions added
+                                                yet. Click "+ Add Question" to begin.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let questionCount = 0;
+
+        //master tyype chanhe handler
+        function changeExerciseType() {
+            const type = document.getElementById('globalType').value;
+            const header = document.getElementById('questionsHeader');
+
+            header.innerText = type.replace('_', ' ') + " Questions";
+
+            //clear outquestions when changing type
+            document.getElementById('exercisesContainer').innerHTML = '<p class="text-muted text-center my-4" id="emptyMessage">No questions added yet. Click "+ Add Question" to begin.</p>';
+            questionCount = 0;
+
+            //quick warning that questions were reset
+            const warning = document.getElementById('typeWarning');
+            warning.style.display = 'block';
+            setTimeout(() => warning.style.display = 'none', 3000);
+        }
+
+        //add a q block
+        function addQuestionBlock() {
+            const emptyMsg = document.getElementById('emptyMessage');
+            if (emptyMsg) emptyMsg.style.display = 'none';
+
+            questionCount++;
+            const type = document.getElementById('globalType').value;
+            const container = document.getElementById('exercisesContainer');
+            const block = document.createElement('div');
+            block.className = 'card border-primary mb-4 question-block shadow-sm';
+
+            let innerFields = '';
+
+            // dynamic internal structure based on the master type
+            if (type === 'MULTIPLE_CHOICE') {
+                innerFields = `
+                <div class="mb-2"><label class="small fw-bold">Target Word</label><input type="text" class="form-control form-control-sm w-text" placeholder="e.g., Mail"></div>
+                <div class="border p-2 rounded bg-white mt-3">
+                    <label class="small fw-bold mb-1">Options List</label>
+                    <div class="dynamic-rows"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addMCRow(this)">+ Add Option</button>
+                </div>`;
+            }
+            else if (type === 'OPEN_QUESTION') {
+                innerFields = `
+                <div class="mb-2"><label class="small fw-bold">Target Word</label><input type="text" class="form-control form-control-sm w-text" placeholder="e.g., Knight"></div>
+                <div class="border p-2 rounded bg-white mt-3">
+                    <label class="small fw-bold mb-1">Accepted Answers List</label>
+                    <div class="dynamic-rows"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addOpenRow(this)">+ Add Accepted Answer</button>
+                </div>`;
+            }
+            else if (type === 'CONNECTIONS') {
+                innerFields = `
+                <div class="border p-2 rounded bg-white mt-3">
+                    <label class="small fw-bold mb-1">Connection Pairs</label>
+                    <div class="dynamic-rows"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addPairRow(this, 'Target')">+ Add Connection Pair</button>
+                </div>`;
+            }
+            else if (type === 'GROUPING') {
+                innerFields = `
+                <div class="border p-2 rounded bg-white mt-3">
+                    <label class="small fw-bold mb-1">Group Assignments</label>
+                    <div class="dynamic-rows"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addPairRow(this, 'Group')">+ Add Group Assignment</button>
+                </div>`;
+            }
+
+            block.innerHTML = `
+            <div class="card-header bg-primary text-white d-flex justify-content-between py-2">
+                <strong class="align-self-center">Question #${questionCount}</strong>
+                <button type="button" class="btn btn-sm btn-danger py-0" onclick="this.closest('.question-block').remove()">Remove</button>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="small fw-bold">Question / Instructions</label>
+                    <input type="text" class="form-control form-control-sm q-text" placeholder="e.g., Chose whether the Word contains 'M' or 'N'">
+                </div>
+                ${innerFields}
+            </div>
+        `;
+
+            container.appendChild(block);
+
+            //Autoadd the first row immediately so the block isnt empty
+            const addBtn = block.querySelector('.btn-outline-secondary');
+            if (addBtn) addBtn.click();
+        }
+
+        // Genetaring rows for each type
+        function addMCRow(button) {
+            const rowCont = button.parentElement.querySelector('.dynamic-rows');
+            const div = document.createElement('div');
+            div.className = 'row g-2 mb-2 mc-row';
+            div.innerHTML = `
+            <div class="col-7"><input type="text" class="form-control form-control-sm opt-text" placeholder="Option (e.g., M)"></div>
+            <div class="col-3"><select class="form-select form-select-sm opt-correct"><option value="false">Incorrect</option><option value="true">Correct</option></select></div>
+            <div class="col-2"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.parentElement.parentElement.remove()">X</button></div>`;
+            rowCont.appendChild(div);
+        }
+
+        function addOpenRow(button) {
+            const rowCont = button.parentElement.querySelector('.dynamic-rows');
+            const div = document.createElement('div');
+            div.className = 'row g-2 mb-2 open-row';
+            div.innerHTML = `
+            <div class="col-10"><input type="text" class="form-control form-control-sm open-ans" placeholder="Valid Answer (e.g., k or 2)"></div>
+            <div class="col-2"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.parentElement.parentElement.remove()">X</button></div>`;
+            rowCont.appendChild(div);
+        }
+
+        function addPairRow(button, rightLabel) {
+            const rowCont = button.parentElement.querySelector('.dynamic-rows');
+            const div = document.createElement('div');
+            div.className = 'row g-2 mb-2 pair-row';
+            div.innerHTML = `
+            <div class="col-5"><input type="text" class="form-control form-control-sm pair-word" placeholder="Word (e.g., Mop)"></div>
+            <div class="col-2 text-center small text-muted align-self-center">-></div>
+            <div class="col-4"><input type="text" class="form-control form-control-sm pair-target" placeholder="${rightLabel} (e.g., Miss)"></div>
+            <div class="col-1"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.parentElement.parentElement.remove()">X</button></div>`;
+            rowCont.appendChild(div);
+        }
+
+        //complete payload constdruction when the form is submitetd.
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const globalType = document.getElementById('globalType').value;
+
+            let payload = {
+                "Explination_Text": document.getElementById('exp_text').value,
+                "Exercises": []
+            };
+
+            const blocks = document.querySelectorAll('.question-block');
+
+            blocks.forEach(block => {
+                let exerciseData = {
+                    "Type": globalType, // Grabbed straight from the top selector
+                    "Question": block.querySelector('.q-text').value || "",
+                    "Words": [],
+                    "Options": []
+                };
+
+                if (globalType === 'MULTIPLE_CHOICE' || globalType === 'OPEN_QUESTION') {
+                    let wText = block.querySelector('.w-text').value;
+                    if (wText) exerciseData.Words.push({ "Text": wText });
+
+                    if (globalType === 'MULTIPLE_CHOICE') {
+                        block.querySelectorAll('.mc-row').forEach(row => {
+                            let text = row.querySelector('.opt-text').value;
+                            let isCorrect = row.querySelector('.opt-correct').value === "true";
+                            if (text) exerciseData.Options.push({ "Text": text, "Is_Correct": isCorrect });
+                        });
+                    } else {
+                        block.querySelectorAll('.open-row').forEach(row => {
+                            let ansVal = row.querySelector('.open-ans').value;
+                            if (!isNaN(ansVal) && ansVal.trim() !== "") {
+                                exerciseData.Options.push({ "Correct_Answer_Number": Number(ansVal) });
+                            } else if (ansVal.trim() !== "") {
+                                exerciseData.Options.push({ "Correct_Answer_Text": ansVal });
+                            }
+                        });
+                    }
+                }
+                else if (globalType === 'CONNECTIONS' || globalType === 'GROUPING') {
+                    block.querySelectorAll('.pair-row').forEach(row => {
+                        let word = row.querySelector('.pair-word').value;
+                        let target = row.querySelector('.pair-target').value;
+
+                        if (word && target) {
+                            exerciseData.Words.push({ "Text": word });
+                            if (globalType === 'CONNECTIONS') {
+                                exerciseData.Options.push({ "Word": word, "Connected_Words": [target] });
+                            } else {
+                                exerciseData.Options.push({ "Word": word, "Group": target });
+                            }
+                        }
+                    });
+                }
+
+                if (exerciseData.Options.length > 0 || exerciseData.Question !== "") {
+                    payload.Exercises.push(exerciseData);
+                }
+            });
+
+            document.getElementById('template_json_raw').value = JSON.stringify(payload);
+        });
+    </script>
+</body>
+
+</html>
