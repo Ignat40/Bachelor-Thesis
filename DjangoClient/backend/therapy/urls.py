@@ -38,4 +38,6 @@ urlpatterns = [
         name='assignment_template_api'
     ),
     path('exercise/api/create/', views.create_exercise, name='api_create_exercise'),
+    path('therapy/exercise/api/update/<int:exercise_id>/', views.update_exercise, name='update_exercise'),
+    path('therapy/exercise/api/delete/<int:exercise_id>/', views.delete_exercise, name='delete_exercise'),
 ]

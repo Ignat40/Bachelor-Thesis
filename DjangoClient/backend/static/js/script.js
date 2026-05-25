@@ -205,7 +205,10 @@ function exercisesHTML() {
             <div style="display:flex;gap:8px;align-items:center">
               <span class="badge ${exercise.diff === "Beginner" ? "active" : exercise.diff === "Intermediate" ? "pending" : "attention"}" style="font-size:11px">${exercise.diff}</span>
               <span style="font-size:12px;color:var(--text-light)">${exercise.uses} patients using</span>
-              <button class="dash-btn" type="button" style="margin-left:auto;font-size:12px;padding:5px 12px" data-open-modal data-assign-exercise-id="${exercise.id}">Assign</button>
+              <div style="margin-left:auto; display:flex; gap:8px;">
+              <button class="dash-btn" type="button" style="font-size:12px;padding:5px 12px" data-edit-exercise-id="${exercise.id}">Edit</button>
+              <button class="dash-btn" type="button" style="font-size:12px;padding:5px 12px" data-open-modal data-assign-exercise-id="${exercise.id}">Assign</button>
+            </div>
             </div>
           </div>
         </div>`).join("")
@@ -360,6 +363,21 @@ document.addEventListener("click", (event) => {
     renderDash(viewButton.dataset.view);
   }
 
+
+  //delte modal
+  if (event.target.id === "delete-exercise-btn") {
+    const exId = document.getElementById('ex_id').value;
+    if (exId && confirm("Are you sure you want to delete this exercise? This cannot be undone.")) {
+      deleteExercise(exId);
+    }
+  }
+
+  //edit modal
+  const editExerciseBtn = event.target.closest("[data-edit-exercise-id]");
+  if (editExerciseBtn) {
+      openEditModal(Number(editExerciseBtn.dataset.editExerciseId));
+  }
+
   const viewLink = event.target.closest("[data-view-link]");
   if (viewLink) {
     const sidebarItem = document.querySelector(`[data-view="${viewLink.dataset.viewLink}"]`);
@@ -392,8 +410,9 @@ document.addEventListener("click", (event) => {
   if (event.target.closest(".add-mc-row-btn")) addMCRow(event.target.closest('.add-mc-row-btn'));
   if (event.target.closest(".add-open-row-btn")) addOpenRow(event.target.closest('.add-open-row-btn'));
   if (event.target.closest(".add-pair-row-btn")) {
-    const type = document.getElementById('globalType').value;
-    addPairRow(event.target.closest('.add-pair-row-btn'), type === 'CONNECTIONS' ? 'Target' : 'Group');
+    const btn = event.target.closest('.add-pair-row-btn');
+    const type = btn.dataset.pairType; // Gets the specific type from the button
+    addPairRow(btn, type === 'CONNECTIONS' ? 'Target' : 'Group');
   }
 
   if (event.target.closest("[data-close-modal]")) closeModal();
@@ -534,46 +553,39 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("change", (event) => {
-  if (event.target.id === "globalType") changeExerciseType();
+  // Update block UI if the question type dropdown is changed
+  if (event.target.classList.contains('block-type')) {
+    const block = event.target.closest('.question-block');
+    renderBlockInner(block, event.target.value);
+  }
 });
-
 
 let exerciseQuestionCount = 0;
 
 function resetExerciseBuilder() {
+    document.getElementById('ex_id').value = ''; 
+    document.querySelector('#create-exercise-modal .modal-title').innerText = "Create a New Exercise"; 
+    
     document.getElementById('ex_title').value = '';
     document.getElementById('ex_category').value = '';
     document.getElementById('ex_difficulty').value = '1';
     document.getElementById('ex_description').value = '';
-
-    document.getElementById('globalType').value = 'MULTIPLE_CHOICE';
     document.getElementById('exp_text').value = '';
     
-    changeExerciseType();
+    const container = document.getElementById('exercisesContainer');
+    if (container) {
+        container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin: 30px 0; font-size: 14px;" id="emptyMessage">No questions added yet. Click "Add Question" to begin.</p>';
+    }
+    exerciseQuestionCount = 0;
+
+    document.getElementById('delete-exercise-btn').style.display = 'none'; // Hide delete button
 }
 
-function changeExerciseType() {
-  const type = document.getElementById('globalType').value;
-  const header = document.getElementById('questionsHeader');
-  if (header) header.innerText = type.replace('_', ' ') + " Questions";
-
-  const container = document.getElementById('exercisesContainer');
-  if (container) container.innerHTML = '<p style="color: var(--text-light); text-align: center; margin: 30px 0; font-size: 14px;" id="emptyMessage">No questions added yet. Click "Add Question" to begin.</p>';
-  exerciseQuestionCount = 0;
-
-  const warning = document.getElementById('typeWarning');
-  if (warning) {
-    warning.style.display = 'block';
-    setTimeout(() => warning.style.display = 'none', 3000);
-  }
-}
-
-function addQuestionBlock() {
+function addQuestionBlock(type = 'MULTIPLE_CHOICE') {
   const emptyMsg = document.getElementById('emptyMessage');
   if (emptyMsg) emptyMsg.style.display = 'none';
 
   exerciseQuestionCount++;
-  const type = document.getElementById('globalType').value;
   const container = document.getElementById('exercisesContainer');
 
   const block = document.createElement('div');
@@ -581,6 +593,38 @@ function addQuestionBlock() {
   block.style.marginBottom = '20px';
   block.style.border = '1.5px solid var(--blue)';
 
+  block.innerHTML = `
+        <div class="card-header" style="background: var(--blue-pale); padding: 10px 16px;">
+            <div class="card-title" style="font-size: 14px; color: var(--blue);">Question #${exerciseQuestionCount}</div>
+            <button type="button" class="remove-block-btn" style="background:none; border:none; color:var(--red); font-size:12px; font-weight:700; cursor:pointer;">✕ Remove</button>
+        </div>
+        <div class="card-body" style="padding: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label>Question Type</label>
+                    <select class="block-type" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                        <option value="MULTIPLE_CHOICE" ${type === 'MULTIPLE_CHOICE' ? 'selected' : ''}>Multiple Choice</option>
+                        <option value="OPEN_QUESTION" ${type === 'OPEN_QUESTION' ? 'selected' : ''}>Open Question</option>
+                        <option value="CONNECTIONS" ${type === 'CONNECTIONS' ? 'selected' : ''}>Connections</option>
+                        <option value="GROUPING" ${type === 'GROUPING' ? 'selected' : ''}>Grouping</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Question / Instructions</label>
+                    <input type="text" class="q-text" placeholder="e.g., Choose whether the Word contains 'M' or 'N'" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                </div>
+            </div>
+            <div class="block-inner-content"></div>
+        </div>
+    `;
+  container.appendChild(block);
+
+  // Render the inputs based on the selected type
+  renderBlockInner(block, type);
+}
+
+function renderBlockInner(block, type) {
+  const innerContainer = block.querySelector('.block-inner-content');
   let innerFields = '';
   let addBtnHtml = '';
 
@@ -591,30 +635,20 @@ function addQuestionBlock() {
     innerFields = `<div style="margin-bottom:8px;"><label>Target Word</label><input type="text" class="w-text" placeholder="Knight" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border);"></div>`;
     addBtnHtml = `<button type="button" class="dash-btn add-open-row-btn" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Valid Answer</button>`;
   } else if (type === 'CONNECTIONS' || type === 'GROUPING') {
-    addBtnHtml = `<button type="button" class="dash-btn add-pair-row-btn" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Pair</button>`;
+    addBtnHtml = `<button type="button" class="dash-btn add-pair-row-btn" data-pair-type="${type}" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Pair</button>`;
   }
 
-  block.innerHTML = `
-        <div class="card-header" style="background: var(--blue-pale); padding: 10px 16px;">
-            <div class="card-title" style="font-size: 14px; color: var(--blue);">Question #${exerciseQuestionCount}</div>
-            <button type="button" class="remove-block-btn" style="background:none; border:none; color:var(--red); font-size:12px; font-weight:700; cursor:pointer;">✕ Remove</button>
-        </div>
-        <div class="card-body" style="padding: 16px;">
-            <div style="margin-bottom: 16px;">
-                <label>Question / Instructions</label>
-                <input type="text" class="q-text" placeholder="Choose whether the Word contains 'M' or 'N'" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
-            </div>
-            ${innerFields}
-            <div style="background: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-top: 12px;">
-                <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light);">Options / Answers</label>
-                <div class="dynamic-rows"></div>
-                ${addBtnHtml}
-            </div>
-        </div>
-    `;
-  container.appendChild(block);
+  innerContainer.innerHTML = `
+      ${innerFields}
+      <div style="background: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-top: 12px;">
+          <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light);">Options / Answers</label>
+          <div class="dynamic-rows"></div>
+          ${addBtnHtml}
+      </div>
+  `;
 
-  const btn = block.querySelector('.dash-btn');
+  // Auto-click the add button so it doesn't start empty
+  const btn = innerContainer.querySelector('.dash-btn');
   if (btn) btn.click();
 }
 
@@ -654,7 +688,6 @@ function addPairRow(btn, targetLabel) {
 }
 
 function submitNewExercise() {
-  const globalType = document.getElementById('globalType').value;
   let payload = {
     "Explination_Text": document.getElementById('exp_text').value,
     "Exercises": []
@@ -662,18 +695,20 @@ function submitNewExercise() {
 
   const blocks = document.querySelectorAll('.question-block');
   blocks.forEach(block => {
+    const blockType = block.querySelector('.block-type').value; // Read type per block
+    
     let exerciseData = {
-      "Type": globalType,
+      "Type": blockType,
       "Question": block.querySelector('.q-text').value || "",
       "Words": [],
       "Options": []
     };
 
-    if (globalType === 'MULTIPLE_CHOICE' || globalType === 'OPEN_QUESTION') {
+    if (blockType === 'MULTIPLE_CHOICE' || blockType === 'OPEN_QUESTION') {
       let wText = block.querySelector('.w-text').value;
       if (wText) exerciseData.Words.push({ "Text": wText });
 
-      if (globalType === 'MULTIPLE_CHOICE') {
+      if (blockType === 'MULTIPLE_CHOICE') {
         block.querySelectorAll('.mc-row').forEach(row => {
           let text = row.querySelector('.opt-text').value;
           let isCorrect = row.querySelector('.opt-correct').value === "true";
@@ -690,13 +725,13 @@ function submitNewExercise() {
         });
       }
     }
-    else if (globalType === 'CONNECTIONS' || globalType === 'GROUPING') {
+    else if (blockType === 'CONNECTIONS' || blockType === 'GROUPING') {
       block.querySelectorAll('.pair-row').forEach(row => {
         let word = row.querySelector('.pair-word').value;
         let target = row.querySelector('.pair-target').value;
         if (word && target) {
           exerciseData.Words.push({ "Text": word });
-          if (globalType === 'CONNECTIONS') {
+          if (blockType === 'CONNECTIONS') {
             exerciseData.Options.push({ "Word": word, "Connected_Words": [target] });
           } else {
             exerciseData.Options.push({ "Word": word, "Group": target });
@@ -710,39 +745,134 @@ function submitNewExercise() {
     }
   });
 
-    const formTitle = document.getElementById('ex_title').value.trim() || "No Title";
-    const formCategory = document.getElementById('ex_category').value.trim() || "No Category";
-    const formDifficulty = parseInt(document.getElementById('ex_difficulty').value) || 1;
-    const formDescription = document.getElementById('ex_description').value.trim() || "No Description";
+  const formTitle = document.getElementById('ex_title').value.trim() || "No Title";
+  const formCategory = document.getElementById('ex_category').value.trim() || "No Category";
+  const formDifficulty = parseInt(document.getElementById('ex_difficulty').value) || 1;
+  const formDescription = document.getElementById('ex_description').value.trim() || "No Description";
 
-    console.log("Saving Exercise JSON Payload:", JSON.stringify(payload, null, 2));
+  const exId = document.getElementById('ex_id').value;
+  const apiUrl = exId ? `/therapy/exercise/api/update/${exId}/` : '/therapy/exercise/api/create/';
 
-    fetch('/therapy/exercise/api/create/', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json', 
-            'X-CSRFToken': getCookie("csrftoken") 
-        },
-        body: JSON.stringify({ 
-            template_json: payload, 
-            title: formTitle,
-            description: formDescription,
-            category: formCategory,
-            difficulty: formDifficulty
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById("create-exercise-modal")?.classList.remove("open");
-            showToast("Exercise Created Successfully!", "success");
-            loadDashboardData();
-        } else {
-            showToast("Error: " + data.message, "danger");
-        }
-    })
-    .catch(error => {
-        console.error("Fetch Error:", error);
-        showToast("Network error while saving.", "danger");
-    });
+  fetch(apiUrl, {
+      method: 'POST',
+      headers: { 
+          'Content-Type': 'application/json', 
+          'X-CSRFToken': getCookie("csrftoken") 
+      },
+      body: JSON.stringify({ 
+          template_json: payload, 
+          title: formTitle,
+          description: formDescription,
+          category: formCategory,
+          difficulty: formDifficulty
+      })
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.success) {
+          document.getElementById("create-exercise-modal")?.classList.remove("open");
+          showToast(exId ? "Exercise Updated Successfully!" : "Exercise Created Successfully!", "success");
+          loadDashboardData();
+      } else {
+          showToast("Error: " + data.message, "danger");
+      }
+  })
+  .catch(error => {
+      console.error("Fetch Error:", error);
+      showToast("Network error while saving.", "danger");
+  });
+}
+
+function openEditModal(id) {
+    const exercise = EXERCISES.find(ex => ex.id === id);
+    if (!exercise) return;
+
+    resetExerciseBuilder(); 
+    document.querySelector('#create-exercise-modal .modal-title').innerText = "Edit Exercise";
+    
+    document.getElementById('delete-exercise-btn').style.display = 'block'; // Show delete button
+
+    document.getElementById('ex_id').value = id;
+    document.getElementById('ex_title').value = exercise.name || '';
+    document.getElementById('ex_category').value = exercise.cat || '';
+    document.getElementById('ex_difficulty').value = exercise.difficulty_num || '1';
+    document.getElementById('ex_description').value = exercise.description || '';
+
+    const template = exercise.template_json || {};
+    document.getElementById('exp_text').value = template.Explination_Text || '';
+
+    // Rebuild Questions from JSON handling multiple types
+    if (template.Exercises && template.Exercises.length > 0) {
+        document.getElementById('emptyMessage').style.display = 'none';
+        
+        template.Exercises.forEach((exData) => {
+            const blockType = exData.Type || 'MULTIPLE_CHOICE';
+            addQuestionBlock(blockType); // Generates block with correct type
+            
+            const blocks = document.querySelectorAll('.question-block');
+            const currentBlock = blocks[blocks.length - 1];
+
+            currentBlock.querySelector('.q-text').value = exData.Question || '';
+
+            if ((blockType === 'MULTIPLE_CHOICE' || blockType === 'OPEN_QUESTION') && exData.Words && exData.Words.length > 0) {
+                currentBlock.querySelector('.w-text').value = exData.Words[0].Text || '';
+            }
+
+            if (exData.Options && exData.Options.length > 0) {
+                const dynamicRows = currentBlock.querySelector('.dynamic-rows');
+                dynamicRows.innerHTML = ''; // Clear default auto-generated row
+
+                exData.Options.forEach(opt => {
+                    if (blockType === 'MULTIPLE_CHOICE') {
+                        const btn = currentBlock.querySelector('.add-mc-row-btn');
+                        addMCRow(btn);
+                        const rows = currentBlock.querySelectorAll('.mc-row');
+                        const newRow = rows[rows.length - 1];
+                        newRow.querySelector('.opt-text').value = opt.Text || '';
+                        newRow.querySelector('.opt-correct').value = opt.Is_Correct ? "true" : "false";
+                    } 
+                    else if (blockType === 'OPEN_QUESTION') {
+                        const btn = currentBlock.querySelector('.add-open-row-btn');
+                        addOpenRow(btn);
+                        const rows = currentBlock.querySelectorAll('.open-row');
+                        const newRow = rows[rows.length - 1];
+                        newRow.querySelector('.open-ans').value = opt.Correct_Answer_Text || opt.Correct_Answer_Number || '';
+                    } 
+                    else if (blockType === 'CONNECTIONS' || blockType === 'GROUPING') {
+                        const btn = currentBlock.querySelector('.add-pair-row-btn');
+                        addPairRow(btn, blockType === 'CONNECTIONS' ? 'Target' : 'Group');
+                        const rows = currentBlock.querySelectorAll('.pair-row');
+                        const newRow = rows[rows.length - 1];
+                        newRow.querySelector('.pair-word').value = opt.Word || '';
+                        newRow.querySelector('.pair-target').value = (blockType === 'CONNECTIONS' ? opt.Connected_Words?.[0] : opt.Group) || '';
+                    }
+                });
+            }
+        });
+    }
+    
+    document.getElementById("create-exercise-modal").classList.add("open");
+}
+
+function deleteExercise(id) {
+  fetch(`/therapy/exercise/api/delete/${id}/`, {
+      method: 'POST',
+      headers: { 
+          'X-CSRFToken': getCookie("csrftoken") 
+      }
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.success) {
+          document.getElementById("create-exercise-modal")?.classList.remove("open");
+          showToast("Exercise deleted successfully.", "success");
+          loadDashboardData(); // Refresh the dashboard UI
+      } else {
+          showToast("Error: " + data.message, "danger");
+      }
+  })
+  .catch(error => {
+      console.error("Fetch Error:", error);
+      showToast("Network error while deleting.", "danger");
+  });
 }
