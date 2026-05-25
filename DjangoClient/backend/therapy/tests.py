@@ -448,6 +448,39 @@ class TherapyApiTests(TestCase):
         self.assertEqual(get_response.status_code, 405)
         self.assertFalse(get_response.json()['success'])
 
+    def test_update_exercise_api_updates_exercise_from_dashboard_payload(self):
+        url = reverse('update_exercise', kwargs={'exercise_id': self.exercise.id})
+        payload = {
+            'title': 'Updated Exercise',
+            'description': 'Updated from dashboard.',
+            'category': 'Updated Category',
+            'difficulty': 3,
+            'template_json': {'Exercises': [{'Type': 'MILESTONE_EXERCISE'}]},
+        }
+
+        response = self.client.post(
+            url,
+            data=json.dumps(payload),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+
+        self.exercise.refresh_from_db()
+        self.assertEqual(self.exercise.title, 'Updated Exercise')
+        self.assertEqual(self.exercise.difficulty, 3)
+        self.assertEqual(self.exercise.template_json, payload['template_json'])
+
+    def test_delete_exercise_api_deletes_exercise_from_dashboard(self):
+        url = reverse('delete_exercise', kwargs={'exercise_id': self.exercise.id})
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+        self.assertFalse(Exercise.objects.filter(id=self.exercise.id).exists())
+
     def test_model_string_representations_are_readable(self):
         clinic = Clinic.objects.create(name='Readable Clinic')
         session = ExerciseSession.objects.create(

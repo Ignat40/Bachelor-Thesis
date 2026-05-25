@@ -202,6 +202,9 @@ def dashboard_data_api(request):
             'name': exercise.title,
             'cat': exercise.category or 'General',
             'diff': 'Beginner' if exercise.difficulty == 1 else 'Intermediate' if exercise.difficulty == 2 else 'Advanced',
+            'difficulty_num': exercise.difficulty, #added for edit func
+            'description': exercise.description,   #same
+            'template_json': exercise.template_json, #same
             'col': 'blue',
             'uses': exercise_usage.get(exercise.id, 0),
             'reps': 1,
@@ -488,6 +491,52 @@ def create_exercise(request):
             return JsonResponse({'success': False, 'message': 'Invalid JSON format sent from frontend.'}, status=400)
         except Exception as e:
             #$catvch db erroprs
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+            
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+def update_exercise(request, exercise_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            template_json = data.get('template_json', {})
+            
+            exercise_instance = get_object_or_404(Exercise, id=exercise_id)
+            exercise_instance.title = data.get('title', exercise_instance.title)
+            exercise_instance.description = data.get('description', exercise_instance.description)
+            exercise_instance.category = data.get('category', exercise_instance.category)
+            exercise_instance.difficulty = data.get('difficulty', exercise_instance.difficulty)
+            exercise_instance.template_json = template_json
+            
+            exercise_instance.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': 'Exercise updated successfully!'
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format sent from frontend.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+            
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+def delete_exercise(request, exercise_id):
+    if request.method == 'POST':
+        try:
+            exercise_instance = get_object_or_404(Exercise, id=exercise_id)
+            exercise_title = exercise_instance.title
+            
+            # This will also cascade and delete any assignments linked to this exercise
+            exercise_instance.delete()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'"{exercise_title}" deleted successfully.'
+            })
+            
+        except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
             
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
