@@ -606,7 +606,7 @@ function addQuestionBlock(type = 'MULTIPLE_CHOICE') {
                         <option value="MULTIPLE_CHOICE" ${type === 'MULTIPLE_CHOICE' ? 'selected' : ''}>Multiple Choice</option>
                         <option value="OPEN_QUESTION" ${type === 'OPEN_QUESTION' ? 'selected' : ''}>Open Question</option>
                         <option value="CONNECTIONS" ${type === 'CONNECTIONS' ? 'selected' : ''}>Connections</option>
-                        <option value="GROUPING" ${type === 'GROUPING' ? 'selected' : ''}>Grouping</option>
+                        <option value="MILESTONE_EXERCISE" ${type === 'MILESTONE_EXERCISE' ? 'selected' : ''}>Milestone Exercise</option>
                     </select>
                 </div>
                 <div>
@@ -625,6 +625,17 @@ function addQuestionBlock(type = 'MULTIPLE_CHOICE') {
 
 function renderBlockInner(block, type) {
   const innerContainer = block.querySelector('.block-inner-content');
+  
+  // If it's a Milestone, we just need the text box above, no options builder.
+  if (type === 'MILESTONE_EXERCISE') {
+      innerContainer.innerHTML = `
+        <div style="background: var(--off-white); border: 1px dashed var(--border); padding: 16px; border-radius: 8px; text-align: center; font-size: 13px; color: var(--text-mid);">
+          This is a text-only milestone. It uses the input field above. No additional options are needed.
+        </div>
+      `;
+      return;
+  }
+
   let innerFields = '';
   let addBtnHtml = '';
 
@@ -634,7 +645,7 @@ function renderBlockInner(block, type) {
   } else if (type === 'OPEN_QUESTION') {
     innerFields = `<div style="margin-bottom:8px;"><label>Target Word</label><input type="text" class="w-text" placeholder="Knight" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border);"></div>`;
     addBtnHtml = `<button type="button" class="dash-btn add-open-row-btn" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Valid Answer</button>`;
-  } else if (type === 'CONNECTIONS' || type === 'GROUPING') {
+  } else if (type === 'CONNECTIONS') {
     addBtnHtml = `<button type="button" class="dash-btn add-pair-row-btn" data-pair-type="${type}" style="background:var(--off-white); color:var(--text-mid); border:1px solid var(--border); padding:6px 12px; font-size:12px; margin-top:10px;">Add Pair</button>`;
   }
 
@@ -695,7 +706,7 @@ function submitNewExercise() {
 
   const blocks = document.querySelectorAll('.question-block');
   blocks.forEach(block => {
-    const blockType = block.querySelector('.block-type').value; // Read type per block
+    const blockType = block.querySelector('.block-type').value; 
     
     let exerciseData = {
       "Type": blockType,
@@ -725,17 +736,13 @@ function submitNewExercise() {
         });
       }
     }
-    else if (blockType === 'CONNECTIONS' || blockType === 'GROUPING') {
+    else if (blockType === 'CONNECTIONS') {
       block.querySelectorAll('.pair-row').forEach(row => {
         let word = row.querySelector('.pair-word').value;
         let target = row.querySelector('.pair-target').value;
         if (word && target) {
           exerciseData.Words.push({ "Text": word });
-          if (blockType === 'CONNECTIONS') {
-            exerciseData.Options.push({ "Word": word, "Connected_Words": [target] });
-          } else {
-            exerciseData.Options.push({ "Word": word, "Group": target });
-          }
+          exerciseData.Options.push({ "Word": word, "Connected_Words": [target] });
         }
       });
     }
@@ -789,9 +796,8 @@ function openEditModal(id) {
 
     resetExerciseBuilder(); 
     document.querySelector('#create-exercise-modal .modal-title').innerText = "Edit Exercise";
+    document.getElementById('delete-exercise-btn').style.display = 'block'; 
     
-    document.getElementById('delete-exercise-btn').style.display = 'block'; // Show delete button
-
     document.getElementById('ex_id').value = id;
     document.getElementById('ex_title').value = exercise.name || '';
     document.getElementById('ex_category').value = exercise.cat || '';
@@ -801,13 +807,12 @@ function openEditModal(id) {
     const template = exercise.template_json || {};
     document.getElementById('exp_text').value = template.Explination_Text || '';
 
-    // Rebuild Questions from JSON handling multiple types
     if (template.Exercises && template.Exercises.length > 0) {
         document.getElementById('emptyMessage').style.display = 'none';
         
         template.Exercises.forEach((exData) => {
             const blockType = exData.Type || 'MULTIPLE_CHOICE';
-            addQuestionBlock(blockType); // Generates block with correct type
+            addQuestionBlock(blockType); 
             
             const blocks = document.querySelectorAll('.question-block');
             const currentBlock = blocks[blocks.length - 1];
@@ -820,7 +825,7 @@ function openEditModal(id) {
 
             if (exData.Options && exData.Options.length > 0) {
                 const dynamicRows = currentBlock.querySelector('.dynamic-rows');
-                dynamicRows.innerHTML = ''; // Clear default auto-generated row
+                dynamicRows.innerHTML = ''; 
 
                 exData.Options.forEach(opt => {
                     if (blockType === 'MULTIPLE_CHOICE') {
@@ -838,13 +843,13 @@ function openEditModal(id) {
                         const newRow = rows[rows.length - 1];
                         newRow.querySelector('.open-ans').value = opt.Correct_Answer_Text || opt.Correct_Answer_Number || '';
                     } 
-                    else if (blockType === 'CONNECTIONS' || blockType === 'GROUPING') {
+                    else if (blockType === 'CONNECTIONS') {
                         const btn = currentBlock.querySelector('.add-pair-row-btn');
-                        addPairRow(btn, blockType === 'CONNECTIONS' ? 'Target' : 'Group');
+                        addPairRow(btn, 'Target');
                         const rows = currentBlock.querySelectorAll('.pair-row');
                         const newRow = rows[rows.length - 1];
                         newRow.querySelector('.pair-word').value = opt.Word || '';
-                        newRow.querySelector('.pair-target').value = (blockType === 'CONNECTIONS' ? opt.Connected_Words?.[0] : opt.Group) || '';
+                        newRow.querySelector('.pair-target').value = opt.Connected_Words?.[0] || '';
                     }
                 });
             }
