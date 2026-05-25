@@ -30,6 +30,15 @@ function statusText(status) {
   return status === "active" ? "Active" : status === "pending" ? "Pending" : "Attention";
 }
 
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function progressClass(progress) {
   if (progress > 70) return "pf-blue";
   if (progress > 45) return "pf-yellow";
@@ -300,7 +309,16 @@ function openPatient(id) {
       <div class="info-chip"><div class="info-chip-val">${patient.streak}</div><div class="info-chip-label">Streak</div></div>
     </div>
     <div class="panel-section-title">Current Exercises</div>
-    ${patient.exercises.length ? patient.exercises.map((exercise) => `<div class="ex-row"><div class="ex-icon blue"></div><div class="ex-info"><div class="ex-name">${exercise}</div><div class="ex-detail">Active assignment</div></div></div>`).join("") : `<div style="font-size:13px;color:var(--text-light)">No active assignments.</div>`}
+    ${patient.assignments?.length ? patient.assignments.map((assignment) => `
+      <div class="ex-row">
+        <div class="ex-icon blue"></div>
+        <div class="ex-info">
+          <div class="ex-name">${escapeHTML(assignment.exercise_title)}</div>
+          <div class="ex-detail">Active assignment · ${assignment.repetitions} rep${Number(assignment.repetitions) === 1 ? "" : "s"}</div>
+        </div>
+        <button class="unassign-btn" type="button" title="Unassign exercise" aria-label="Unassign ${escapeHTML(assignment.exercise_title)}" data-unassign-assignment-id="${assignment.id}">✕</button>
+      </div>
+    `).join("") : `<div style="font-size:13px;color:var(--text-light)">No active assignments.</div>`}
     <div class="panel-section-title">Progress History</div>
     <div style="display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:16px">
       ${patient.scores.map((score, index) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:var(--blue);opacity:${0.4 + index * 0.1};border-radius:3px 3px 0 0;height:${Math.round((score / 100) * 64)}px"></div><div style="font-size:10px;color:var(--text-light)">S${index + 1}</div></div>`).join("")}
@@ -381,6 +399,13 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-modal]")) closeModal();
   if (event.target.closest("[data-close-panel]")) closePanel();
 
+  const unassignButton = event.target.closest("[data-unassign-assignment-id]");
+  if (unassignButton) {
+    event.stopPropagation();
+    unassignExercise(Number(unassignButton.dataset.unassignAssignmentId));
+    return;
+  }
+
   const patientRow = event.target.closest("[data-patient-id]");
   if (patientRow && !event.target.closest("button")) openPatient(Number(patientRow.dataset.patientId));
 
@@ -429,6 +454,27 @@ async function submitAssignment() {
   closeModal();
   showToast(`${selectedExercises.length} exercise${selectedExercises.length === 1 ? "" : "s"} assigned.`, "success");
   await loadDashboardData();
+}
+
+async function unassignExercise(assignmentId) {
+  if (!assignmentId) return;
+
+  const response = await fetch(`/therapy/api/assignment/${assignmentId}/unassign/`, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+  });
+  const data = await response.json();
+
+  if (!response.ok || !data.deleted) {
+    showToast(data.message || "Could not unassign exercise.");
+    return;
+  }
+
+  showToast(data.message || "Exercise unassigned.", "success");
+  await loadDashboardData();
+  openPatient(Number(data.child_id));
 }
 
 function getCookie(name) {

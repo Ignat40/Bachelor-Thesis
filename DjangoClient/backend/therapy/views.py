@@ -172,6 +172,16 @@ def dashboard_data_api(request):
             'progress': latest_score,
             'scores': scores[-6:],
             'exercises': [assignment.exercise.title for assignment in assignments],
+            'assignments': [
+                {
+                    'id': assignment.id,
+                    'exercise_id': assignment.exercise.id,
+                    'exercise_title': assignment.exercise.title,
+                    'status': assignment.status,
+                    'repetitions': assignment.repetitions,
+                }
+                for assignment in assignments
+            ],
             'status': status,
             'emoji': '',
             'color': '#E8F2FF',
@@ -361,6 +371,32 @@ def create_assignment_api(request):
         'exercise_id': exercise.id,
         'message': f'{exercise.title} assigned to {child}.',
     }, status=201)
+
+
+@login_required
+def unassign_exercise_api(request, assignment_id):
+    if request.method != 'POST':
+        return JsonResponse({
+            'deleted': False,
+            'message': 'Only POST requests are allowed.'
+        }, status=405)
+
+    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    assignment = get_object_or_404(
+        ExerciseAssignment.objects.select_related('child', 'exercise'),
+        id=assignment_id,
+        child__therapist=therapist,
+    )
+    child_id = assignment.child.id
+    exercise_title = assignment.exercise.title
+    assignment.delete()
+
+    return JsonResponse({
+        'deleted': True,
+        'assignment_id': assignment_id,
+        'child_id': child_id,
+        'message': f'{exercise_title} unassigned.',
+    })
 
 
 @login_required

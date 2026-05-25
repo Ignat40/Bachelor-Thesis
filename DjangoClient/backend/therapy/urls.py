@@ -28,6 +28,11 @@ urlpatterns = [
         name='create_assignment_api'
     ),
     path(
+        'api/assignment/<int:assignment_id>/unassign/',
+        views.unassign_exercise_api,
+        name='unassign_exercise_api'
+    ),
+    path(
         'api/assignment/<int:assignment_id>/template/',
         views.assignment_template_api,
         name='assignment_template_api'

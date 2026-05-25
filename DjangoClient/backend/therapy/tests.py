@@ -258,6 +258,8 @@ class TherapyApiTests(TestCase):
         self.assertEqual(data['patients'][0]['progress'], 80)
         self.assertEqual(data['patients'][0]['scores'], [80])
         self.assertIn('M and N Practice', data['patients'][0]['exercises'])
+        self.assertEqual(data['patients'][0]['assignments'][0]['id'], self.assignment.id)
+        self.assertEqual(data['patients'][0]['assignments'][0]['exercise_title'], 'M and N Practice')
 
         self.assertEqual(data['stats']['total_patients'], 1)
         self.assertEqual(data['stats']['total_sessions'], 1)
@@ -343,6 +345,55 @@ class TherapyApiTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.json()['created'])
+
+    def test_unassign_exercise_api_deletes_assignment_for_logged_in_therapist(self):
+        self.client.login(username='therapist', password='testpass123')
+
+        url = reverse(
+            'unassign_exercise_api',
+            kwargs={'assignment_id': self.assignment.id},
+        )
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['deleted'])
+        self.assertFalse(
+            ExerciseAssignment.objects.filter(id=self.assignment.id).exists()
+        )
+
+    def test_unassign_exercise_api_rejects_get_requests(self):
+        self.client.login(username='therapist', password='testpass123')
+
+        url = reverse(
+            'unassign_exercise_api',
+            kwargs={'assignment_id': self.assignment.id},
+        )
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(response.json()['deleted'])
+
+    def test_unassign_exercise_api_rejects_other_therapists_assignment(self):
+        other_user = User.objects.create_user(
+            username='other-therapist',
+            password='testpass123',
+        )
+        TherapistProfile.objects.create(user=other_user)
+        self.client.login(username='other-therapist', password='testpass123')
+
+        url = reverse(
+            'unassign_exercise_api',
+            kwargs={'assignment_id': self.assignment.id},
+        )
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(
+            ExerciseAssignment.objects.filter(id=self.assignment.id).exists()
+        )
 
     def test_sofia_clinics_api_returns_clinic_data(self):
         Clinic.objects.create(
