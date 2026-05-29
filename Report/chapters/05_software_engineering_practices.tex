@@ -1,0 +1,49 @@
+\chapter{Software Engineering Practices}
+\label{ch:software-engineering-practices}
+
+This chapter describes the software engineering practices used for developing the project. The purpose was not only to build the working prototype but to design it in a structured way that is easily maintainable, allows for future expansion, and demonstrates core principles from software engineering and software architecture.
+
+\section{Software Design and Architecture Design Principles}
+\label{sec:software-design-and-architecture-design-principles}
+
+The system was designed as a multi-component application consisting of a Unity mobile client, a Django backend, a therapist web dashboard, and a Supabase PostgreSQL database. This decoupling was a key design decision, as each part of the system has a different responsibility, as outlined in the previous chapter, minimizing dependencies between components. An example of that would be that the Unity application does not directly access the database, yet receives the data it wants successfully. The design also follows the separation of concerns principle, distributing functionality across smaller parts rather than placing it all in a single application. Further benefits include easier maintainability, faster development speed, and lower overhead for future expansion. For instance, if there are changes to the internal data structure, it does not require changes as long as the API responses remain intact.
+
+Another important design decision was to decouple larger parts of the system and avoid breaking the Single-Responsibility Principle. To illustrate, the exercise orchestrator controls the flow of the exercises while separate components handle the JSON parsing, animation, scene loader, answer panel, audio loading, and API communication.
+
+The system was also designed to be highly scalable and modular. The current prototype supports the main project workflow, but the architecture enables future development, including additional exercise types, richer progress tracking, stronger child authentication, offline support, and more advanced pronunciation feedback. This was important because the project is a prototype, but it should still provide a foundation that can be continued.
+
+The layered architecture of the application separates the system into levels of responsibility. As showcased in Table~X, the three main layers are the presentation layer, the application/backend layer, and the data layer:
+
+\begin{itemize}
+    \item \textbf{Presentation layer:} The presentation layer consists of the Unity client and the therapist web app. Those are the parts of the system that the user interacts with directly.
+    \item \textbf{Application/backend layer:} The application/backend layer contains the business logic of the system: authentication handling, exercise retrieval, CRUD operations, session result submission, and dashboard data.
+    \item \textbf{Data layer:} The data layer is the PostgreSQL database. It stores persistent data, including therapists' credentials, children, exercises, assignments, completed sessions, and more.
+\end{itemize}
+
+The layered approach is functional at keeping responsibilities separate, as the user interface does not need to know how data is stored internally, the database does not need to know how Unity displays the exercises, and the backend acts as the middle layer that connects these parts.
+
+\section{Scrum and Agile Team Organization}
+\label{sec:scrum-and-agile-team-organization}
+
+The project's development lifecycle followed the Agile methodology, using the Scrum framework. This approach was chosen over traditional models because it allowed the prototype to grow and the team to adapt to technical challenges and continuously integrate received feedback. Development was structured into sprints that lasted between one and two weeks, with each sprint focused on delivering functional or complete aspects of the project, such as problem formulation or building the web dashboard application.
+
+To ensure that the system addressed users' real-life needs, the team created and used user stories and personas during the project's research phase. The requirements mapped the needs of both SLPs and patients, which helped in the creation of the problem formulation and proposed solutions.
+
+The project management software utilized by the group was mainly Jira. The team used the digital Scrum board to visualize and follow the workflow and assign tasks through completion phases, showing the status and progress. Tasks were also broken down and assigned to team members in Jira at the start of each sprint, ensuring that every member knew each task's assignee and status to avoid overlap and interference with each other's work.
+
+While the team used Agile Scrum during the development lifecycle, our testing strategy was inspired by the V-model (Verification and Validation) principles. Due to the data routing between a Unity prototype, a web dashboard, and a database, each level of design needed a corresponding testing phase. Instead of applying the V-model principles as a linear process throughout the project, the team applied them on a per-sprint basis. As every component was made and designed, the corresponding unit and integration tests were planned and executed immediately to ensure that the newly written code met the requirements.
+
+\section{Testing and Quality Assurance}
+\label{sec:testing-and-quality-assurance}
+
+Quality assurance was handled through a combination of version control, pull requests, unit testing, code reviews, and task tracking.
+
+GitHub was used for version control and collaboration. The team used two separate repositories, one for the Unity client and one for the web client, for easier codebase understanding. Team members developed their features on separate branches, which were then reviewed and tested by another team member through pull requests. Once the reviewer confirmed that tests were successful, only then was the branch merged into main. This allowed the team to work independently on the latest version of the project without threatening to compromise the system.
+
+Unit tests were used both in the Django backend and Unity's main functionality. Tests covered important backend workflows as well as essential database-related behavior such as retrieving dashboard data, CRUD operations, exercise assignment and unassignment, and storing session data. For example, when an exercise is unassigned from a child, the assignment should be removed or updated in the database. When Unity submits a session result, the backend should store it correctly. When the therapist creates or edits an exercise, the changes should be saved and applied to the database. These tests helped verify that the backend behaved as intended and code changes did not break the core.
+
+End-to-end testing was also necessary, as the system includes many user-facing interactive interfaces. The therapist dashboard was tested manually in the browser by checking the login dashboard, loading the child profile, exercise CRUD operations, assignment, and unassignment. Every exercise in Unity was then thoroughly tested to ensure the user flow was intuitive and easy to operate.
+
+Additionally, core Unity logic was unit tested, focusing mainly on the JSON-driven exercise system and verifying that the templates can be parsed correctly into the expected exercise, options, and word packages. The generated coverage report summarized in \Cref{tab:unity-selected-coverage} shows that the targeted test has good line coverage of the core \texttt{Exercise\_JSON\_Parser}, reaching a little over 84\%. The test assembly is fully covered, reaching 100\%.
+
+The full supplementary coverage summaries are included in \Cref{app:test-material}.

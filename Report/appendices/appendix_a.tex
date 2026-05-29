@@ -9,9 +9,95 @@ Place supplementary architecture diagrams, screenshots, or extended figures here
 \section{Test Material}
 \label{app:test-material}
 
-Place extended test cases, evaluation material, or additional result tables here.
+This section includes supplementary test coverage results from the Unity client and Django backend. The tables summarize the generated HTML coverage reports used during evaluation.
+
+\begin{table}[H]
+    \centering
+    \caption{Unity coverage report summary.}
+    \label{tab:unity-coverage-summary}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Metric} & \textbf{Result} \\
+        \midrule
+        Generated on & 2026-05-23 17:25 \\
+        Assemblies & 2 \\
+        Classes & 147 \\
+        Files & 127 \\
+        Covered lines & 286 \\
+        Uncovered lines & 12,723 \\
+        Coverable lines & 13,009 \\
+        Total lines & 24,042 \\
+        Line coverage & 2.1\% (286 of 13,009) \\
+        Covered methods & 82 \\
+        Total methods & 1,929 \\
+        Method coverage & 4.2\% (82 of 1,929) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Selected Unity class coverage results.}
+    \label{tab:unity-selected-coverage}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Class} & \textbf{Covered} & \textbf{Uncovered} & \textbf{Coverable} & \textbf{Coverage} \\
+        \midrule
+        Exercise\_JSON\_Parser & 127 & 23 & 150 & 84.6\% \\
+        ExerciseScoreCalculator & 6 & 0 & 6 & 100\% \\
+        Exercise & 13 & 4 & 17 & 76.4\% \\
+        Word\_Package & 8 & 7 & 15 & 53.3\% \\
+        Option\_Text & 13 & 0 & 13 & 100\% \\
+        Option\_Multiple\_Choice & 7 & 0 & 7 & 100\% \\
+        Option\_Groups & 7 & 0 & 7 & 100\% \\
+        Pronunciation\_Sound & 9 & 0 & 9 & 100\% \\
+        Tests / ExerciseJsonParserTests & 79 & 0 & 79 & 100\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Django backend coverage report summary.}
+    \label{tab:django-coverage-summary}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{File} & \textbf{Statements} & \textbf{Missing} & \textbf{Excluded} & \textbf{Coverage} \\
+        \midrule
+        therapy/\_\_init\_\_.py & 0 & 0 & 0 & 100\% \\
+        therapy/admin.py & 9 & 0 & 0 & 100\% \\
+        therapy/apps.py & 4 & 0 & 0 & 100\% \\
+        therapy/forms.py & 6 & 0 & 0 & 100\% \\
+        therapy/models.py & 67 & 0 & 0 & 100\% \\
+        therapy/urls.py & 3 & 0 & 0 & 100\% \\
+        therapy/views.py & 175 & 34 & 0 & 81\% \\
+        \midrule
+        Total & 264 & 34 & 0 & 87\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The Unity coverage report shows low overall line coverage because the Unity project contains many UI, scene, third-party, and MediaPipe-related scripts that were tested manually rather than through automated unit tests. The targeted Unity tests focused on the JSON-driven exercise system, where the parser and data model classes achieved substantially higher coverage. The Django backend coverage was higher overall because backend behavior such as models, routes, dashboard APIs, CRUD operations, assignment handling, and session storage is more suitable for automated unit testing.
 
 \section{Project Artefacts}
 \label{app:project-artefacts}
 
 Place links, screenshots, setup instructions, or other artefacts that support the report but are too detailed for the main chapters.
+
+\section{Project Summary}
+\label{app:project-summary}
+
+The objective of this project was to determine whether the use of a mobile application could serve as an additional tool to help kids with speech impediments perform their speech therapy exercises outside of a clinical environment. The motivation for this was based on the established gap between the guidance and monitoring received during clinical sessions and the inconsistency of home practice, which often has a loose structure and lacks direction.
+
+The project delivered a prototype consisting of two main components:
+
+\begin{itemize}
+    \item A Unity-based mobile application that manages speech exercises in a child-friendly, interactive format recommended by an SLP.
+    \item A Django-based web dashboard that enables therapists to define exercises, assign them to different patients, and analyze session completion data.
+\end{itemize}
+
+Evaluation of the prototype involved conducting an informal presentation to a speech-language pathologist, who expressed approval of the chosen exercise structure and stated that they would be glad to have such a tool in practice. Specifically, they appreciated the convenience of a mobile system as a replacement for paper exercises, which patients tend to lose track of. The modular exercise system, capable of producing custom exercises, proved to be a feasible idea, relevant to the real-world issues that SLPs face in their day-to-day practice.
+
+On the other hand, the prototype is currently a proof of concept and, as such, has many limitations that would need to be addressed before it could become production-ready. Other experimental features, such as facial tracking, show great promise but have not yet been clinically validated. This limits the amount of automated evaluation that could take place.
+
+Despite this, the prototype has demonstrated the project's feasibility in real-world use cases, with practicing SLPs endorsing the idea that, with continued development, this project has the potential to make a real difference in how children with speech impediments engage in home exercise.

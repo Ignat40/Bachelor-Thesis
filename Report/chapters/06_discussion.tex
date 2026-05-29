@@ -1,0 +1,34 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+\section{Effectiveness of the Solution and Technologies}
+\label{sec:effectiveness-of-the-solution-and-technologies}
+
+The proposed project scope and requirements were defined by the needs of SLPs, with the goal of increasing patients' motivation to perform home exercises.
+
+The Unity mobile application, although simple, is intended to be engaging for patients. The types of exercises and the way they were presented are meant to spark user interest in a way that paper materials fail to. Additionally, practicing SLPs found the decoupled web dashboard to be a useful tool. During interviews, the team found that it enabled them to easily create tailored exercises that best fit their patients' needs, bypassing the friction that physical media often introduces. Moreover, the information recorded during home exercises helps SLPs adjust their approach to achieve the best results for the patient.
+
+Despite the prototype showing promise in practice, many proposed features, such as gamification elements, custom avatars, and automatic face-tracking evaluation, are currently missing. These features could further enhance the user experience for both patients and SLPs, but user interviews have nonetheless proven that the prototype shows promise and feasibility in real-world applications.
+
+\section{Technical Challenges}
+\label{sec:technical-challenges}
+
+As noted above, the project scope was limited during development, with certain systems and additions having been deprioritized. This was done to ensure a functional prototype could be delivered, with the primary goal of demonstrating the concept's feasibility, rather than building a full product.
+
+Some of these features include a quest system that rewards users for completing various tasks and a customizable avatar that lets users create a relatable character, helping them stay engaged for longer. Similar systems were at various stages of development, but could not be brought to a sufficiently functional state to be fully integrated into the prototype. As such, current implementations only show a UI mock-up of what these systems could look like.
+
+As a technical limitation, the prototype lacks a visual interface for signing in to the Django backend. User authentication is still possible via code, but implementing a usable UI interface for this feature was not considered part of the prototype's core functionality and was therefore omitted.
+
+Despite their limited implementation in the prototype, these additional features have not been ruled out and remain as part of a long-term development plan.
+
+\section{Reflection on Software Engineering Practices}
+\label{sec:reflection-on-software-engineering-practices}
+
+One of the software engineering practices that proved most impactful was the architectural decision to decouple the Unity application, the Django web server, and the Supabase PostgreSQL database. This allowed for parallel development to take place, requiring only that a consistent HTTP handshake via a REST API be maintained for both parts of the system to function. The fact that the system was designed to be rapidly iterated on at the architectural level meant that, during development, the cascading effects of a single system were minimized. Additionally, using a V-model workflow proved to be effective in practice. Unit tests and manual reviews in version control ensured the prototype remained functional throughout development.
+
+This added freedom perhaps contributed to the team underestimating the complexity of certain features, leading to their deprioritization. This, combined with a misguided categorization of core deliverables and stretch goals, meant that features had to be scoped out during implementation rather than architectural design.
+
+\section{Lessons for Further Projects}
+\label{sec:lessons-for-further-projects}
+
+During the development of this project, the team consistently made pragmatic decisions that enabled rapid development of a functional prototype, but at the cost of substantial technical depth. If this prototype were to be expanded, it would require restructuring that could have been avoided if certain features had been scoped out earlier in development. Overreliance and improper application of agile principles led to excessive technical depth.
