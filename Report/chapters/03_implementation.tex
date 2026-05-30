@@ -24,7 +24,7 @@ For face and mouth tracking, the project integrated MediaPipe's face landmark de
 
 Supabase delivers built-in user management with email/password and OAuth login, real-time data synchronization, and WebSockets that track database changes or broadcast messages across connected clients. It also offers serverless functions for custom backend logic that runs close to the user, making it a strong option for backend infrastructure. In our project, Supabase was used as a DBaaS (Database as a Service), providing a cloud-hosted, fully managed PostgreSQL database. This decision was taken based on the reliable cloud hosting of the database without the need to configure our own server. This eliminated the need for a locally hosted database server, allowing the PostgreSQL instance to be used and managed by Django's backend through its object-relational mapping system.
 
-Communication between the Unity client and the Django backend is established via HTTP API endpoints. The Unity application sends and receives data using Unity's \texttt{UnityWebRequest} class, implemented in a dedicated C\# script called \texttt{TherapyApiClient}, exchanging data in JSON format.
+Communication between the Unity client and the Django backend is established via HTTP API endpoints. The Unity application exchanges JSON data through Unity's \texttt{UnityWebRequest} class, implemented in a dedicated C\# script called \texttt{TherapyApiClient}.
 
 \section{System Architecture}
 \label{sec:system-architecture}
@@ -33,7 +33,7 @@ The system follows a client-server architecture that consists of four main compo
 
 \begin{figure}[p]
     \centering
-    \includegraphics[height=0.82\textheight,keepaspectratio]{figures/component-architecture-diagram.jpg}
+    \includegraphics[height=0.82\textheight,keepaspectratio]{figures/architecture.jpg}
     \caption{Component architecture diagram showing the Unity client, web interface, backend layer, and database responsibilities.}
     \label{fig:component-architecture-diagram}
 \end{figure}
@@ -141,7 +141,7 @@ Videos are compressed to a few megabytes per minute. Despite this, the video rec
 \section{Results and Evaluation}
 \label{sec:results-evaluation}
 
-The success of the system depends on the execution of the core functionalities defined in the system architecture design. The solutions proposed to address the challenges identified in \Cref{ch:problem-statement} were designed as functional prototypes and tested both practically and technologically, with data flow demonstrated to an active Speech-Language Pathologist.
+The success of the system depends on the execution of the core functionalities defined in the system architecture design. The solutions proposed to address the challenges identified in \Cref{sec:problem-statement} were designed as functional prototypes and tested both practically and technologically, with data flow demonstrated to an active Speech-Language Pathologist.
 
 \subsection{Recalling Proper Exercise Execution}
 \label{subsec:recalling-proper-exercise-execution}
