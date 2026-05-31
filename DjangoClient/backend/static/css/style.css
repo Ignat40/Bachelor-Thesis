@@ -736,6 +736,14 @@ footer p {
 .login-logo .logo-text span {
   color: var(--yellow-dark);
 }
+.login-panda {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: block;
+  margin-bottom: 24px;
+  object-fit: cover;
+}
 .login-card h2 {
   font-family: var(--ff-display);
   font-size: 26px;
