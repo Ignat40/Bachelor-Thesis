@@ -9,15 +9,15 @@
     <div class="bubble b3"></div>
     <div class="bubble b4"></div>
     <div class="hero-content">
-      <div class="hero-badge">Now in use across schools & clinics</div>
+      <div class="hero-badge">Soon in use across schools & clinics</div>
       <h1>Every child deserves a <em>confident</em> <strong>voice</strong></h1>
-      <p class="hero-sub">SpeechBuddy helps speech therapists assign personalised exercises to children, track their progress, and celebrate every breakthrough — from clinic to home.</p>
+      <p class="hero-sub">Phoenmy helps speech therapists assign personalised exercises to children, track their progress, and celebrate every breakthrough - from clinic to home.</p>
       <div class="hero-btns">
         <a class="btn-primary" href="{% url 'login' %}">Therapist Portal</a>
         <a class="btn-secondary" href="{% url 'about' %}">Learn More</a>
       </div>
       <div class="hero-stats">
-        <div class="stat-pill">
+        {% comment %} <div class="stat-pill">
           <span class="stat-num">500+</span>
           <span class="stat-label">Children helped</span>
         </div>
@@ -28,7 +28,7 @@
         <div class="stat-pill">
           <span class="stat-num">50+</span>
           <span class="stat-label">Therapists</span>
-        </div>
+        </div> {% endcomment %}
       </div>
     </div>
     <div class="hero-art">
@@ -68,7 +68,7 @@
           <!-- <circle cx="252" cy="270" r="18" fill="#4A9FFF"/> -->
           <!-- Star badge -->
           <!-- <circle cx="230" cy="135" r="28" fill="#FFD600"/> -->
-          <!-- <text x="230" y="141" text-anchor="middle" font-size="24" fill="#1A1F2E">⭐</text> -->
+          
           <!-- Sound waves from mouth -->
           <!-- <path d="M210 185 Q225 178 210 172" stroke="#FFD600" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/> -->
           <!-- <path d="M218 190 Q240 178 218 168" stroke="#FFD600" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".6"/> -->
@@ -90,7 +90,7 @@
       <div class="feat-card blue">
         <span class="feat-icon"></span>
         <h3>Real-time Progress Tracking</h3>
-        <p>Visualise each child's improvement over time with intuitive charts and milestone alerts — always know who needs attention.</p>
+        <p>Visualise each child's improvement over time with intuitive charts and milestone alerts - always know who needs attention.</p>
       </div>
       <div class="feat-card yellow">
         <span class="feat-icon"></span>
@@ -100,22 +100,22 @@
       <div class="feat-card red">
         <span class="feat-icon"></span>
         <h3>Practice at Home</h3>
-        <p>Children continue their exercises at home through the SpeechBuddy app, with AI evaluation keeping therapists in the loop.</p>
+        <p>Children continue their exercises at home through the Phonemy app.</p>
       </div>
       <div class="feat-card blue">
         <span class="feat-icon"></span>
         <h3>Gamified Experience</h3>
-        <p>Kids earn stars, unlock characters, and level up — making practice feel like play, not work.</p>
+        <p>Exercises are presented as game elements - making practice feel like play, not work.</p>
       </div>
       <div class="feat-card yellow">
         <span class="feat-icon"></span>
         <h3>Smart Notifications</h3>
-        <p>Get notified when children complete sessions, skip exercises, or hit new milestones — stay connected without micromanaging.</p>
+        <p>Get notified when children complete sessions, skip exercises, or hit new milestones - stay connected without micromanaging.</p>
       </div>
       <div class="feat-card red">
         <span class="feat-icon"></span>
         <h3>Detailed Session Reports</h3>
-        <p>Every session is recorded and analysed. Export reports for clinical documentation or parent meetings in one click.</p>
+        <p>Every session is recorded and analysed. </p>
       </div>
     </div>
   </section>
@@ -144,7 +144,7 @@
       <div class="step">
         <div class="step-num">4</div>
         <h3>Celebrate wins</h3>
-        <p>Kids receive stars and rewards. Therapists see measurable improvement. Everyone succeeds together.</p>
+        <p>Therapists see measurable improvement. Everyone succeeds together.</p>
       </div>
     </div>
   </section>
@@ -161,7 +161,7 @@
       {% comment %} <div class="logo-text">Speech<span>Buddy</span></div> {% endcomment %}
       <p style="margin-top:8px;font-size:13px;">BSc Software Engineering Thesis Project, 2026</p>
     </div>
-    <p>Built with 💙 to help every child find their voice</p>
+    <p>Built to help every child find their voice</p>
   </footer>
 </div>
 {% endblock %}

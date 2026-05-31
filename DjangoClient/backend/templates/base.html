@@ -11,29 +11,18 @@
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5" />
     {% block extra_head %}{% endblock %}
   </head>
   <body>
     <nav>
       <a class="nav-logo" href="{% url 'landing' %}" aria-label="SpeechBuddy home">
-        <svg class="nav-logo-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <circle cx="20" cy="20" r="20" fill="#1A6FD4" />
-          <ellipse cx="20" cy="24" rx="12" ry="8" fill="white" />
-          <circle cx="14" cy="19" r="4" fill="white" />
-          <circle cx="26" cy="19" r="4" fill="white" />
-          <circle cx="14" cy="19" r="2" fill="#1A6FD4" />
-          <circle cx="26" cy="19" r="2" fill="#1A6FD4" />
-          <path d="M15 27 Q20 31 25 27" stroke="#1A6FD4" stroke-width="1.5" fill="none" stroke-linecap="round" />
-          <circle cx="28" cy="12" r="6" fill="#FFD600" />
-          <path d="M26 12 L28 14 L31 10" stroke="#1A1F2E" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
+        <img class="nav-logo-icon" src="{% static 'panda.png' %}" alt="" aria-hidden="true" />
         {% comment %} <span class="nav-logo-text">Speech<span>Buddy</span></span> {% endcomment %}
       </a>
       <div class="nav-links">
         <a class="nav-link" href="{% url 'landing' %}">Home</a>
-        <a class="nav-link" href="{% url 'about' %}">About</a>
-        <a class="nav-link" href="{% url 'login' %}">For Therapists</a>
+        <a class="nav-link" href="{% url 'about' %}">About</a>        
         {% if request.user.is_authenticated %}
           <a class="nav-cta" href="{% url 'dashboard' %}">Dashboard</a>
         {% else %}

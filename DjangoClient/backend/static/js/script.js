@@ -66,7 +66,7 @@ function overviewHTML() {
   return `
     <div class="dash-header">
       <div><h2>${greetingText()}, ${therapist}</h2><div class="welcome">${todayText()} · Here's how your patients are doing</div></div>
-      <button class="dash-btn" type="button" data-open-modal>Assign Exercise</button>
+      
     </div>
       <div class="stats-row">
       <div class="stat-card s-blue"><div class="stat-label">Total Patients</div><div class="stat-value">${DASHBOARD_STATS.total_patients}</div><div class="stat-delta up">Tracked patients</div></div>
