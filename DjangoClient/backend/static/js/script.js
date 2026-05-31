@@ -700,7 +700,7 @@ function addPairRow(btn, targetLabel) {
 
 function submitNewExercise() {
   let payload = {
-    "Explination_Text": document.getElementById('exp_text').value,
+    "Explanation_Text": document.getElementById('exp_text').value,
     "Exercises": []
   };
 
