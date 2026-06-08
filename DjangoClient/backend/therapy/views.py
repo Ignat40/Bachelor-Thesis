@@ -14,6 +14,53 @@ from .forms import exerciseForm #forms and testing
 import json
 
 
+def patient_payload(child):
+    return {
+        'id': child.id,
+        'first_name': child.first_name,
+        'last_name': child.last_name,
+        'name': str(child),
+        'age': child.age,
+        'diagnosis_notes': child.diagnosis_notes,
+        'condition': child.diagnosis_notes or 'Not specified',
+        'parent_contact': child.parent_contact,
+    }
+
+
+def assignment_payload(assignment):
+    return {
+        'id': assignment.id,
+        'status': assignment.status,
+        'repetitions': assignment.repetitions,
+        'assigned_at': assignment.assigned_at.isoformat() if assignment.assigned_at else None,
+        'due_date': assignment.due_date.isoformat() if assignment.due_date else None,
+        'exercise': {
+            'id': assignment.exercise.id,
+            'title': assignment.exercise.title,
+            'description': assignment.exercise.description,
+            'category': assignment.exercise.category,
+            'difficulty': assignment.exercise.difficulty,
+            'template_json': assignment.exercise.template_json,
+        },
+    }
+
+
+def exercise_is_milestone(template_json):
+    if not isinstance(template_json, dict):
+        return False
+
+    exercise_steps = template_json.get('Exercises', [])
+    if not isinstance(exercise_steps, list):
+        return False
+
+    milestone_types = {'MILESTONE', 'MILESTONE_EXERCISE'}
+    return any(
+        isinstance(step, dict)
+        and str(step.get('Type', '')).upper() in milestone_types
+        for step in exercise_steps
+    )
+
+
 def sofia_clinics_api(request):
     clinics = Clinic.objects.all().order_by('city', 'name')
     data = [
@@ -164,9 +211,13 @@ def dashboard_data_api(request):
 
         patients.append({
             'id': child.id,
+            'first_name': child.first_name,
+            'last_name': child.last_name,
             'name': str(child),
             'age': child.age,
+            'diagnosis_notes': child.diagnosis_notes,
             'condition': child.diagnosis_notes or 'Not specified',
+            'parent_contact': child.parent_contact,
             'sessions': len(sessions),
             'streak': streak,
             'progress': latest_score,
@@ -377,6 +428,57 @@ def create_assignment_api(request):
 
 
 @login_required
+def child_assignments_api(request, child_id):
+    if request.method != 'GET':
+        return JsonResponse({
+            'success': False,
+            'message': 'Only GET requests are allowed.'
+        }, status=405)
+
+    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    child = get_object_or_404(Child, id=child_id, therapist=therapist)
+    assignments = ExerciseAssignment.objects.filter(
+        child=child
+    ).select_related('exercise').order_by('-assigned_at')
+
+    return JsonResponse({
+        'success': True,
+        'child': patient_payload(child),
+        'assignments': [
+            assignment_payload(assignment)
+            for assignment in assignments
+        ],
+    })
+
+
+@login_required
+def assigned_exercises_api(request):
+    if request.method != 'GET':
+        return JsonResponse({
+            'success': False,
+            'message': 'Only GET requests are allowed.'
+        }, status=405)
+
+    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    assignments = ExerciseAssignment.objects.filter(
+        child__therapist=therapist
+    ).select_related('child', 'exercise').order_by('child_id', '-assigned_at')
+
+    return JsonResponse({
+        'success': True,
+        'assigned_exercises': [
+            {
+                'assignment_id': assignment.id,
+                'patient_id': assignment.child_id,
+                'exercise_title': assignment.exercise.title,
+                'is_milestone': exercise_is_milestone(assignment.exercise.template_json),
+            }
+            for assignment in assignments
+        ],
+    })
+
+
+@login_required
 def unassign_exercise_api(request, assignment_id):
     if request.method != 'POST':
         return JsonResponse({
@@ -443,6 +545,136 @@ def assign_exercise(request, child_id):
     return render(request, 'therapy/assign_exercise.html', {
         'child': child,
         'exercises': exercises,
+    })
+
+
+@login_required
+def create_patient_api(request):
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Only POST requests are allowed.'
+        }, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid JSON payload.'
+        }, status=400)
+
+    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    first_name = data.get('first_name', '').strip()
+    last_name = data.get('last_name', '').strip()
+
+    try:
+        age = int(data.get('age') or 0)
+    except (TypeError, ValueError):
+        age = 0
+
+    if not first_name or not last_name:
+        return JsonResponse({
+            'success': False,
+            'message': 'First name and last name are required.'
+        }, status=400)
+
+    if age <= 0:
+        return JsonResponse({
+            'success': False,
+            'message': 'Age must be a positive number.'
+        }, status=400)
+
+    child = Child.objects.create(
+        therapist=therapist,
+        first_name=first_name,
+        last_name=last_name,
+        age=age,
+        diagnosis_notes=data.get('diagnosis_notes', '').strip(),
+        parent_contact=data.get('parent_contact', '').strip(),
+    )
+
+    return JsonResponse({
+        'success': True,
+        'message': f'{child} added successfully.',
+        'patient': patient_payload(child),
+    }, status=201)
+
+
+@login_required
+def update_patient_api(request, child_id):
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Only POST requests are allowed.'
+        }, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid JSON payload.'
+        }, status=400)
+
+    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    child = get_object_or_404(Child, id=child_id, therapist=therapist)
+    first_name = data.get('first_name', '').strip()
+    last_name = data.get('last_name', '').strip()
+
+    try:
+        age = int(data.get('age') or 0)
+    except (TypeError, ValueError):
+        age = 0
+
+    if not first_name or not last_name:
+        return JsonResponse({
+            'success': False,
+            'message': 'First name and last name are required.'
+        }, status=400)
+
+    if age <= 0:
+        return JsonResponse({
+            'success': False,
+            'message': 'Age must be a positive number.'
+        }, status=400)
+
+    child.first_name = first_name
+    child.last_name = last_name
+    child.age = age
+    child.diagnosis_notes = data.get('diagnosis_notes', '').strip()
+    child.parent_contact = data.get('parent_contact', '').strip()
+    child.save(update_fields=[
+        'first_name',
+        'last_name',
+        'age',
+        'diagnosis_notes',
+        'parent_contact',
+    ])
+
+    return JsonResponse({
+        'success': True,
+        'message': f'{child} updated successfully.',
+        'patient': patient_payload(child),
+    })
+
+
+@login_required
+def delete_patient_api(request, child_id):
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Only POST requests are allowed.'
+        }, status=405)
+
+    therapist = get_object_or_404(TherapistProfile, user=request.user)
+    child = get_object_or_404(Child, id=child_id, therapist=therapist)
+    patient_name = str(child)
+    child.delete()
+
+    return JsonResponse({
+        'success': True,
+        'message': f'{patient_name} deleted successfully.',
     })
 
 

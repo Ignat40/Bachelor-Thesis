@@ -346,6 +346,118 @@ class TherapyApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.json()['created'])
 
+    def test_child_assignments_api_returns_assignments_for_logged_in_therapist(self):
+        self.client.login(username='therapist', password='testpass123')
+
+        url = reverse(
+            'child_assignments_api',
+            kwargs={'child_id': self.child.id},
+        )
+
+        response = self.client.get(url)
+        data = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data['success'])
+        self.assertEqual(data['child']['id'], self.child.id)
+        self.assertEqual(len(data['assignments']), 1)
+        self.assertEqual(data['assignments'][0]['id'], self.assignment.id)
+        self.assertEqual(data['assignments'][0]['exercise']['title'], 'M and N Practice')
+        self.assertEqual(data['assignments'][0]['exercise']['template_json'], self.template_json)
+
+    def test_child_assignments_api_rejects_other_therapists_patient(self):
+        other_user = User.objects.create_user(
+            username='other-therapist',
+            password='testpass123',
+        )
+        TherapistProfile.objects.create(user=other_user)
+        self.client.login(username='other-therapist', password='testpass123')
+
+        url = reverse(
+            'child_assignments_api',
+            kwargs={'child_id': self.child.id},
+        )
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_assigned_exercises_api_returns_all_assignments_with_milestone_status(self):
+        self.client.login(username='therapist', password='testpass123')
+
+        milestone_exercise = Exercise.objects.create(
+            title='Fairy Tale Milestone',
+            description='Read a short milestone text aloud.',
+            category='Milestone',
+            difficulty=3,
+            template_json={
+                'Exercises': [
+                    {
+                        'Type': 'MILESTONE_EXERCISE',
+                        'Question': 'Read the story aloud.',
+                    }
+                ]
+            },
+        )
+        milestone_assignment = ExerciseAssignment.objects.create(
+            child=self.child,
+            exercise=milestone_exercise,
+            repetitions=1,
+        )
+
+        url = reverse('assigned_exercises_api')
+
+        response = self.client.get(url)
+        data = response.json()
+        assignments_by_id = {
+            item['assignment_id']: item
+            for item in data['assigned_exercises']
+        }
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data['success'])
+        self.assertEqual(len(data['assigned_exercises']), 2)
+        self.assertEqual(
+            set(assignments_by_id[self.assignment.id].keys()),
+            {'assignment_id', 'patient_id', 'exercise_title', 'is_milestone'},
+        )
+        self.assertEqual(assignments_by_id[self.assignment.id]['patient_id'], self.child.id)
+        self.assertEqual(assignments_by_id[self.assignment.id]['exercise_title'], 'M and N Practice')
+        self.assertFalse(assignments_by_id[self.assignment.id]['is_milestone'])
+        self.assertEqual(assignments_by_id[milestone_assignment.id]['patient_id'], self.child.id)
+        self.assertTrue(assignments_by_id[milestone_assignment.id]['is_milestone'])
+
+    def test_assigned_exercises_api_only_returns_logged_in_therapists_assignments(self):
+        other_user = User.objects.create_user(
+            username='other-therapist',
+            password='testpass123',
+        )
+        other_therapist = TherapistProfile.objects.create(user=other_user)
+        other_child = Child.objects.create(
+            therapist=other_therapist,
+            first_name='Other',
+            last_name='Child',
+            age=6,
+        )
+        other_assignment = ExerciseAssignment.objects.create(
+            child=other_child,
+            exercise=self.exercise,
+            repetitions=1,
+        )
+        self.client.login(username='therapist', password='testpass123')
+
+        url = reverse('assigned_exercises_api')
+
+        response = self.client.get(url)
+        assignment_ids = [
+            item['assignment_id']
+            for item in response.json()['assigned_exercises']
+        ]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.assignment.id, assignment_ids)
+        self.assertNotIn(other_assignment.id, assignment_ids)
+
     def test_unassign_exercise_api_deletes_assignment_for_logged_in_therapist(self):
         self.client.login(username='therapist', password='testpass123')
 

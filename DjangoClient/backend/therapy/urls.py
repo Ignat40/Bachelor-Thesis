@@ -28,6 +28,16 @@ urlpatterns = [
         name='create_assignment_api'
     ),
     path(
+        'api/children/<int:child_id>/assignments/',
+        views.child_assignments_api,
+        name='child_assignments_api'
+    ),
+    path(
+        'api/assigned-exercises/',
+        views.assigned_exercises_api,
+        name='assigned_exercises_api'
+    ),
+    path(
         'api/assignment/<int:assignment_id>/unassign/',
         views.unassign_exercise_api,
         name='unassign_exercise_api'
@@ -37,6 +47,9 @@ urlpatterns = [
         views.assignment_template_api,
         name='assignment_template_api'
     ),
+    path('patient/api/create/', views.create_patient_api, name='api_create_patient'),
+    path('patient/api/update/<int:child_id>/', views.update_patient_api, name='api_update_patient'),
+    path('patient/api/delete/<int:child_id>/', views.delete_patient_api, name='api_delete_patient'),
     path('exercise/api/create/', views.create_exercise, name='api_create_exercise'),
     path('exercise/api/update/<int:exercise_id>/', views.update_exercise, name='update_exercise'),
     path('exercise/api/delete/<int:exercise_id>/', views.delete_exercise, name='delete_exercise'),

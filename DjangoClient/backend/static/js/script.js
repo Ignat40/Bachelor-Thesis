@@ -108,7 +108,7 @@ function patientsHTML() {
   return `
     <div class="dash-header">
       <div><h2>My Patients</h2><div class="welcome">${PATIENTS.length} patients under your care</div></div>
-      <button class="dash-btn" type="button" data-open-modal>Assign Exercise</button>
+      <button class="dash-btn" type="button" data-open-patient-modal>Add Patient</button>
     </div>
     <div class="card">
       <div class="card-header"><div class="card-title">All Patients</div><input type="text" placeholder="Search patients..." style="width:220px;padding:7px 12px;font-size:13px" data-patient-filter></div>
@@ -126,7 +126,7 @@ function patientsTable(patients, showActions) {
             <td><div class="patient-row"><div class="patient-avatar" style="background:${p.color}">${p.emoji}</div><div><div class="patient-name">${p.name}</div><div class="patient-age">Age ${p.age}${showActions ? "" : ` · ${p.condition}`}</div></div></div></td>
             ${showActions ? `<td style="font-size:13px;color:var(--text-mid)">${p.condition}</td>` : `<td><span class="badge ${p.status}">${statusText(p.status)}</span></td>`}
             ${showActions ? `<td><span class="badge ${p.status}">${statusText(p.status)}</span></td><td style="font-size:14px;font-weight:600">${p.sessions}</td>` : progressCell(p)}
-            ${showActions ? `${progressCell(p)}<td style="font-size:14px;font-weight:700">${p.streak}</td><td><button class="dash-btn" type="button" style="font-size:12px;padding:6px 14px" data-open-modal data-assign-child-id="${p.id}">Assign</button></td>` : `<td><span style="font-size:13px;font-weight:700">${p.streak}</span></td>`}
+            ${showActions ? `${progressCell(p)}<td style="font-size:14px;font-weight:700">${p.streak}</td><td><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="dash-btn" type="button" style="font-size:12px;padding:6px 14px" data-open-modal data-assign-child-id="${p.id}">Assign</button><button class="dash-btn" type="button" style="font-size:12px;padding:6px 14px;background:var(--off-white);color:var(--blue);border:1.5px solid var(--border)" data-edit-patient-id="${p.id}">Edit</button><button class="dash-btn" type="button" style="font-size:12px;padding:6px 14px;background:var(--red);color:white" data-delete-patient-id="${p.id}">Delete</button></div></td>` : `<td><span style="font-size:13px;font-weight:700">${p.streak}</span></td>`}
           </tr>
         `).join("")}
       </tbody>
@@ -296,6 +296,39 @@ function closeModal() {
   document.getElementById("assign-modal")?.classList.remove("open");
 }
 
+function resetPatientModal() {
+  document.getElementById("patient_id").value = "";
+  document.getElementById("patient_first_name").value = "";
+  document.getElementById("patient_last_name").value = "";
+  document.getElementById("patient_age").value = "";
+  document.getElementById("patient_parent_contact").value = "";
+  document.getElementById("patient_diagnosis_notes").value = "";
+  document.querySelector("#patient-crud-modal .modal-title").innerText = "Add Patient";
+  document.getElementById("delete-patient-btn").style.display = "none";
+}
+
+function openPatientModal(patientId = "") {
+  resetPatientModal();
+  const patient = patientId ? PATIENTS.find((item) => String(item.id) === String(patientId)) : null;
+
+  if (patient) {
+    document.querySelector("#patient-crud-modal .modal-title").innerText = "Edit Patient";
+    document.getElementById("patient_id").value = patient.id;
+    document.getElementById("patient_first_name").value = patient.first_name || "";
+    document.getElementById("patient_last_name").value = patient.last_name || "";
+    document.getElementById("patient_age").value = patient.age || "";
+    document.getElementById("patient_parent_contact").value = patient.parent_contact || "";
+    document.getElementById("patient_diagnosis_notes").value = patient.diagnosis_notes || "";
+    document.getElementById("delete-patient-btn").style.display = "block";
+  }
+
+  document.getElementById("patient-crud-modal")?.classList.add("open");
+}
+
+function closePatientModal() {
+  document.getElementById("patient-crud-modal")?.classList.remove("open");
+}
+
 function openPatient(id) {
   const patient = PATIENTS.find((item) => item.id === id);
   const panel = document.getElementById("panel-content");
@@ -330,6 +363,8 @@ function openPatient(id) {
     <textarea class="note-area" placeholder="Add notes about this patient..."></textarea>
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="dash-btn" type="button" style="flex:1" data-open-modal data-assign-child-id="${patient.id}">Assign Exercise</button>
+      <button class="dash-btn" type="button" style="flex:1;background:var(--off-white);color:var(--blue);border:1.5px solid var(--border)" data-edit-patient-id="${patient.id}">Edit</button>
+      <button class="dash-btn" type="button" style="flex:1;background:var(--red);color:white" data-delete-patient-id="${patient.id}">Delete</button>
     </div>`;
   document.getElementById("patient-panel")?.classList.add("open");
 }
@@ -390,6 +425,24 @@ document.addEventListener("click", (event) => {
     openModal(openModalButton.dataset.assignChildId || "", openModalButton.dataset.assignExerciseId || "");
   }
 
+  const openPatientModalButton = event.target.closest("[data-open-patient-modal]");
+  if (openPatientModalButton) {
+    event.stopPropagation();
+    openPatientModal();
+  }
+
+  const editPatientButton = event.target.closest("[data-edit-patient-id]");
+  if (editPatientButton) {
+    event.stopPropagation();
+    openPatientModal(editPatientButton.dataset.editPatientId);
+  }
+
+  const deletePatientButton = event.target.closest("[data-delete-patient-id]");
+  if (deletePatientButton) {
+    event.stopPropagation();
+    deletePatient(Number(deletePatientButton.dataset.deletePatientId));
+  }
+
 
   if (event.target.closest("[data-open-create-modal]")) {
     document.getElementById("create-exercise-modal")?.classList.add("open");
@@ -416,6 +469,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (event.target.closest("[data-close-modal]")) closeModal();
+  if (event.target.closest("[data-close-patient-modal]")) closePatientModal();
   if (event.target.closest("[data-close-panel]")) closePanel();
 
   const unassignButton = event.target.closest("[data-unassign-assignment-id]");
@@ -432,7 +486,17 @@ document.addEventListener("click", (event) => {
     submitAssignment();
   }
 
+  if (event.target.id === "submit-patient") {
+    submitPatient();
+  }
+
+  if (event.target.id === "delete-patient-btn") {
+    const patientId = Number(document.getElementById("patient_id").value);
+    if (patientId) deletePatient(patientId);
+  }
+
   if (event.target.id === "assign-modal") closeModal();
+  if (event.target.id === "patient-crud-modal") closePatientModal();
   if (event.target.id === "patient-panel") closePanel();
 });
 
@@ -496,6 +560,80 @@ async function unassignExercise(assignmentId) {
   openPatient(Number(data.child_id));
 }
 
+async function submitPatient() {
+  const patientId = document.getElementById("patient_id").value;
+  const firstName = document.getElementById("patient_first_name").value.trim();
+  const lastName = document.getElementById("patient_last_name").value.trim();
+  const age = Number(document.getElementById("patient_age").value);
+  const parentContact = document.getElementById("patient_parent_contact").value.trim();
+  const diagnosisNotes = document.getElementById("patient_diagnosis_notes").value.trim();
+
+  if (!firstName || !lastName) {
+    showToast("Please enter the patient's first and last name.", "danger");
+    return;
+  }
+
+  if (!age || age <= 0) {
+    showToast("Please enter a valid patient age.", "danger");
+    return;
+  }
+
+  const apiUrl = patientId ? `/therapy/patient/api/update/${patientId}/` : "/therapy/patient/api/create/";
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({
+      first_name: firstName,
+      last_name: lastName,
+      age,
+      parent_contact: parentContact,
+      diagnosis_notes: diagnosisNotes,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    showToast(data.message || "Could not save patient.", "danger");
+    return;
+  }
+
+  closePatientModal();
+  closePanel();
+  showToast(data.message || "Patient saved.", "success");
+  await loadDashboardData("patients");
+}
+
+async function deletePatient(patientId) {
+  if (!patientId) return;
+  const patient = PATIENTS.find((item) => Number(item.id) === Number(patientId));
+  const patientName = patient?.name || "this patient";
+
+  if (!confirm(`Are you sure you want to delete ${patientName}? This will also remove their assignments and session history.`)) {
+    return;
+  }
+
+  const response = await fetch(`/therapy/patient/api/delete/${patientId}/`, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    showToast(data.message || "Could not delete patient.", "danger");
+    return;
+  }
+
+  closePatientModal();
+  closePanel();
+  showToast(data.message || "Patient deleted.", "success");
+  await loadDashboardData("patients");
+}
+
 function getCookie(name) {
   return document.cookie
     .split("; ")
@@ -511,7 +649,7 @@ document.addEventListener("input", (event) => {
   });
 });
 
-async function loadDashboardData() {
+async function loadDashboardData(view = "overview") {
   try {
     const response = await fetch("/therapy/api/dashboard-data/");
     if (!response.ok) throw new Error("Dashboard data request failed");
@@ -529,7 +667,7 @@ async function loadDashboardData() {
     const alertBadge = document.getElementById("alert-badge");
     if (alertBadge) alertBadge.textContent = ALERTS.length;
 
-    renderDash("overview");
+    renderDash(view);
   } catch (error) {
     console.error(error);
     const container = document.getElementById("dash-main");
