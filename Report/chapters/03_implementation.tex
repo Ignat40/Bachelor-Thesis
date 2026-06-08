@@ -26,6 +26,8 @@ Supabase delivers built-in user management with email/password and OAuth login, 
 
 Communication between the Unity client and the Django backend is established via HTTP API endpoints. The Unity application exchanges JSON data through Unity's \texttt{UnityWebRequest} class, implemented in a dedicated C\# script called \texttt{TherapyApiClient}.
 
+These technologies were deliberately selected to achieve long-term scalability rather than only a prototype. Django's ORM means the underlying database engine could be swapped or scaled independently without rewriting application logic. Supabase, used here purely as a DBaaS, already exposes WebSocket support, serverless functions, and OAuth authentication, none of which are needed in the current prototype but would become essential for supporting concurrent therapists across institutions or for integrating with third-party identity providers. In addition, Unity communicates with Django exclusively through a REST API using JSON, which means the mobile client and the backend can evolve separately. MediaPipe's landmark detection pipeline runs on-device, which avoids server-side video processing costs that would otherwise become a bottleneck at scale. These technological choices suggest that the prototype could potentially absorb real-world load with targeted improvements rather than requiring a full redesign.
+
 \section{System Architecture}
 \label{sec:system-architecture}
 
@@ -55,13 +57,37 @@ Overall, the architecture supports the main goal of the project: connecting ther
 \section{Core Application Flow}
 \label{sec:core-application-flow}
 
-The typical workflow through the system proceeds as follows: a therapist logs in to the Django dashboard and is presented with a suite of tools and options that allow them to create a custom exercise or choose an existing one from the database to assign to a specific patient. Once created or chosen, it gets assigned to the selected child, and Django processes the action and stores it as an \texttt{ExerciseAssignment} record in the database.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/dataflow-diagram.jpg}
     \caption{Level 1 dataflow diagram showing how exercise templates, assignments, session results, and dashboard data move through the system.}
     \label{fig:dataflow-diagram}
+\end{figure}
+
+The typical workflow through the system proceeds as follows: a therapist logs in to the Django dashboard and is presented with a suite of tools and options that allow them to create a custom exercise or choose an existing one from the database to assign to a specific patient. Once created or chosen, it gets assigned to the selected child, and Django processes the action and stores it as an \texttt{ExerciseAssignment} record in the database.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.95\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/dashboard-exercise-library.png}
+        \caption{Exercise library}
+    \end{subfigure}
+    \vspace{0.6em}
+
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/exercise-creation.png}
+        \caption{Exercise editor}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/exercise-assignment.png}
+        \caption{Assignment dialog}
+    \end{subfigure}
+    \caption{Therapist dashboard screens for browsing, editing, and assigning exercises.}
+    \label{fig:therapist-dashboard-exercise-flow}
 \end{figure}
 
 On the Unity side, the application is assignment-driven. The Unity client holds an \texttt{assignment\_id}, which it uses to request the corresponding exercise template from the backend. When the exercise scene is started, the \texttt{Exercise\_Orchestrator} component locates the \texttt{TherapyApiClient} and calls the method responsible for fetching the assigned template. The API endpoints used by the Unity client are:
@@ -86,6 +112,13 @@ The frontend UI controls are handled by the \texttt{Exercise\_Animation\_Control
 
 The application flow then comes back to the therapist dashboard. When the therapist accesses the dashboard, they are shown a detailed progress report and overview of the child. The web application shows the number of completed exercises and the number of correct answers. The therapist can review the child's performance remotely and, based on the results, formulate or adjust the structure for the patient's needs.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/dashboard-overview.png}
+    \caption{Therapist dashboard overview showing patient status, recent activity, progress, and weekly sessions.}
+    \label{fig:therapist-dashboard-overview}
+\end{figure}
+
 The Django backend serves as the communication layer between the Unity application, the therapist dashboard, and the database. It exposes API endpoints that allow the Unity client to request assigned exercises and submit completed session results. It also handles web requests from the therapist dashboard and updates the database when therapists create, edit, delete, assign, or unassign exercises.
 
 Additionally, the project includes experimental use of MediaPipe for face and mouth tracking in Unity. This was included to explore how computer vision could support pronunciation-related exercises. However, this part of the project should be understood as experimental rather than a clinically validated assessment tool. The issues are known technical debt, discussed further in \Cref{ch:discussion}.
@@ -97,12 +130,13 @@ The exercise system functions around three main components: the \texttt{Exercise
 
 \begin{figure}[H]
     \centering
-    \includegraphics[height=0.82\textheight,keepaspectratio]{figures/class-diagram.png}
+    \includegraphics[width=\textwidth,height=0.68\textheight,keepaspectratio]{figures/class-diagram.png}
     \caption{Class diagram of the core Unity exercise system, including orchestration, animation, API communication, parsing, and exercise data models.}
     \label{fig:class-diagram}
 \end{figure}
 
-The \texttt{Exercise\_Orchestrator} functions around a queue. This queue is initialized with the JSON provided by the Django backend, which the \texttt{Exercise\_JSON\_Parser} component parses into a predefined level class. Using this level class, the \texttt{Exercise\_Orchestrator} is able to call high-level functions such as \texttt{Prompt\_User()} and \texttt{Show\_Next\_Word()} in the correct sequence. The queue is only advanced when \texttt{On\_User\_Ready()} is called, effectively making the flow wait for user input.
+The \texttt{Exercise\_Orchestrator} functions around a queue. This queue is initialized with the JSON provided by the Django backend, which the \texttt{Exercise\_JSON\_Parser} component parses into a predefined level class. This class defines levels as a set of exercises, each with an exercise type and a set of options. Different option classes were wrapped in a parent generic option class as a way to generalize them. This allows the Exercise class to hold a single Options array instead of one for each exercise type. Using this level class, the \texttt{Exercise\_Orchestrator} is able to call high-level functions such as \texttt{Prompt\_User()} and \texttt{Show\_Next\_Word()} in the correct sequence. The queue is only advanced when \texttt{On\_User\_Ready()} is called, effectively making the flow wait for user input.
+
 
 Method overloading was used throughout in order to improve readability and simplify function calls:
 
@@ -123,7 +157,38 @@ The exercise system implements a set of screens, each with different responsibil
 
 \begin{itemize}
     \item \textbf{Explanation Screen:} Presents a short reminder of how the sounds relevant to the exercise are produced using text, audio, and two-dimensional visualizations.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.31\textwidth}
+        \centering
+        \includegraphics[height=0.32\textheight,keepaspectratio]{figures/unity-quest-screen.png}
+        \caption{Explanation}
+    \end{subfigure}
+    \hfill
+    \hfill
+    \begin{subfigure}{0.31\textwidth}
+        \centering
+        \includegraphics[height=0.32\textheight,keepaspectratio]{figures/unity-camera-exercise.png}
+        \caption{Mouth position explanation screen}
+    \end{subfigure}
+    \caption{Unity explanation screens shown before or during exercise practice.}
+    \label{fig:unity-explanation-screens}
+\end{figure}
+
+\begin{itemize}
     \item \textbf{Word Showcase Screen:} Showcases the words that are to be used in the following exercise using an interactive carousel. The user sees a simulated mirror on this screen and is only allowed to continue after listening to and repeating all words shown.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.38\textheight,keepaspectratio]{figures/unity-exercise-menu.png}
+    \caption{Unity word carousel screen used to present and repeat the words in an exercise.}
+    \label{fig:unity-word-carousel}
+\end{figure}
+
+\begin{itemize}
     \item \textbf{Multiple Choice Screen:} Shows the user a single word and a question with a multiple-choice answer. The word is represented only by an image, but an audio recording of it can be heard when clicked.
     \item \textbf{Open Question Screen:} Shows the user a single word, a question, and an input field. The word is represented only by an image, but an audio recording of it can be heard when clicked.
     \item \textbf{Connections Screen:} Shows the user a set of words and a question. The user can connect two words by clicking on them. Each word is represented only by an image, but an audio recording of it can be heard when clicked.
@@ -141,21 +206,14 @@ Videos are compressed to a few megabytes per minute. Despite this, the video rec
 \section{Results and Evaluation}
 \label{sec:results-evaluation}
 
-The success of the system depends on the execution of the core functionalities defined in the system architecture design. The solutions proposed to address the challenges identified in \Cref{sec:problem-statement} were designed as functional prototypes and tested both practically and technologically, with data flow demonstrated to an active Speech-Language Pathologist.
+The success of the system depends on the execution of the core functionalities defined in the system architecture design. The solutions proposed to address the challenges identified in \Cref{ch:problem-statement} were designed as functional prototypes and tested both practically and technologically, with data flow demonstrated to an active Speech-Language Pathologist. The evaluation session with the therapist showed positive feedback on the design and its alignment with the current needs. Below, we share the results and evaluation feedback.
 
 \subsection{Recalling Proper Exercise Execution}
 \label{subsec:recalling-proper-exercise-execution}
 
-The explanation screen was developed iteratively in the Unity exercise flow. After the core exercises were established, supporting features such as audio explanations, visual guidance, word cards, and instructions were added. The reason for those aids was that the target group may not be confident readers, thus focusing on combining sound and visual cues. This practice drill automatically starts before each level, using the sounds from the selected exercise.
+The explanation screen was developed iteratively in the Unity exercise flow. It shows the user text and audio explanations of how to perform the upcoming exercises. After doing so, a card showing how each relevant sound is performed is shown to the user. After the core exercises were established, supporting features such as audio explanations, visual guidance, word cards, and instructions were added. The reason for those aids was that the target group may not be confident readers, thus focusing on combining sound and visual cues. The explanation screen is shown automatically at the start of each level, using the sounds from the selected exercise. 
 
-This solution was evaluated by a practicing SLP, who, during a prototype demonstration, approved the chosen visuals. However, since the explanation screen has not been tested with users in the target group, further evaluation is necessary for this solution to be production-ready.
-
-\subsection{Limited Self-Correction Without Mirror Feedback}
-\label{subsec:limited-self-correction-without-mirror-feedback}
-
-The face tracking feature mentioned in \Cref{sec:technologies-used} was treated as exploratory rather than a core deliverable. MediaPipe's face detection is part of the prototype evaluation. It shows that real-time face, mouth, and lip positions can be extracted and converted into measurable output that can later be used as a stricter method of evaluation.
-
-The limitation of the proposed solution for this problem is that the accuracy of those measurements was not evaluated against a clinical standard, and the feature should not yet be used as a concrete assessment of valid pronunciation. However, it shows a promising direction for future development.
+This solution was evaluated by a practicing SLP, who, during a prototype demonstration, approved the chosen approach. As said by the interviewed SLP, "Reminding kids how to do their exercises helps them do them correctly. They often forget how to pronounce certain sounds, so reminders help."
 
 \subsection{Need for Therapist-Guided Personalized Exercises}
 \label{subsec:need-for-therapist-guided-personalized-exercises}
@@ -168,11 +226,18 @@ Additionally, the system successfully delivers the core functionality described.
 
 \begin{itemize}
     \item The SLP considered the exercise selection to be appropriate as the exercises were based on previously provided material.
-    \item The SLP's positive statement that she would use such a system in her own practice supports the practical application of the concept.
-    \item The SLP appreciated the distinction between the therapist-facing dashboard and the user-focused mobile application, noting that therapists assigning targeted exercises while children completed them themselves is typical of realistic clinical workflows.
-    \item The SLP pointed to the mobile format as a specific practical advantage because mobile-based exercises eliminate the common issue of children forgetting or losing paper practice materials.
+    \item The SLP's positive statement that they would use such a system in their own practice supports the practical application of the concept. As said by them during an interview, "I would love to have access to such a product. It seems interesting, and it could really be helpful in my practice."
+    \item The SLP appreciated the distinction between the therapist-facing dashboard and the user-focused mobile application, noting that therapists assigning targeted exercises while children completed them themselves is typical of realistic clinical workflows. As stated by them, "It's like me creating paper materials and assigning them as homework. It's a similar workflow."
+    \item The SLP pointed to the mobile format as a specific practical advantage because mobile-based exercises eliminate the common issue of children forgetting or losing paper practice materials. They stated, "Kids lose their paper materials, so they often can't complete their home exercises. On the other hand, they always have their phone on hand, so having the exercises there removes the burden of having to carry extra materials".
 \end{itemize}
 
-Although the results are positive, the system has limitations. The Unity client was originally designed as a gamified application, whereas the current prototype has shifted toward being more educational than a captivating game. Despite that, the app still has a child-friendly UI and level progression with a reward screen. Another limitation is that the current setup for the user-side flow is based on \texttt{assignment\_id} rather than user authentication. This is sufficient for a prototype workflow demonstration, but a real-world system would need a more secure identification flow.
+\subsection{Limitations}
+\label{subsec:limitations}
 
-Finally, these results should be interpreted within their appropriate scope. The evaluation was based on a single demonstration rather than repeated usage. The feedback supports the project's relevance, but it is not formal evidence of clinical effectiveness. Additional user testing involving multiple therapists, children, and caregivers should be conducted to draw stronger conclusions about the system's impact on speech practice outcomes.
+While results from initial testing were positive, the prototype has several issues that would need to be addressed before it could be considered production-ready. The Unity client was designed as a gamified application, which the prototype could not implement to the extent presented in the intended design. Other features also had to be scoped out since goals shifted during development to focus more on a proof of concept, Minimum Viable Product.
+
+The face tracking feature, for example, mentioned in \Cref{sec:technologies-used}, was treated as exploratory rather than a core deliverable. The current prototype implementation shows that real-time face, mouth, and lip positions can be extracted and converted into measurable output that can later be used as a stricter method of evaluation.
+
+The limitation of the proposed solution for this problem is that the accuracy of those measurements was not evaluated against a clinical standard, and the feature should not yet be used as a concrete assessment of valid pronunciation. However, it shows a promising direction for future development.
+
+Finally, these results should be interpreted within their appropriate scope. The evaluation was based on a single demonstration rather than repeated usage. The feedback supports the project's relevance, but it is not formal evidence of clinical effectiveness. Our evaluation does not equal clinical trials with real users and a large sample of therapists. Now that our confidence in the prototype is stronger, the future version should be clinically tested.

@@ -1,6 +1,13 @@
 \chapter{Discussion}
 \label{ch:discussion}
 
+\section{Feasibility Prototyping as a Product Development Strategy}
+\label{sec:feasibility-prototyping-as-a-product-development-strategy}
+
+Children with speech impediments often struggle with motivation and engagement during home exercises, with SLPs not being able to help outside of in-clinic sessions. The project's hypothesis is that using a gamified mobile application alongside an SLP accessible web dashboard can resolve this issue. Developing a product, based on this hypothesis, though, would have to be built upon a variety of assumptions. Would SLPs actually find a digital tool useful? Would children even engage with exercises presented on a screen? 
+
+In order to move these uncertainties from the realm of speculation into evidence-based proof, a Minimum Viable Product was developed so that the concept can be tested in practice with target users. Establishing this concept validation early in development, using a proof-of-concept prototype, prevents major redesigns in the future. This comes at the cost of technical debt, but since this debt is based on validated concepts rather than assumptions, investing the additional time needed to resolve it is worthwhile. 
+
 \section{Effectiveness of the Solution and Technologies}
 \label{sec:effectiveness-of-the-solution-and-technologies}
 
@@ -8,7 +15,8 @@ The proposed project scope and requirements were defined by the needs of SLPs, w
 
 The Unity mobile application, although simple, is intended to be engaging for patients. The types of exercises and the way they were presented are meant to spark user interest in a way that paper materials fail to. Additionally, practicing SLPs found the decoupled web dashboard to be a useful tool. During interviews, the team found that it enabled them to easily create tailored exercises that best fit their patients' needs, bypassing the friction that physical media often introduces. Moreover, the information recorded during home exercises helps SLPs adjust their approach to achieve the best results for the patient.
 
-Despite the prototype showing promise in practice, many proposed features, such as gamification elements, custom avatars, and automatic face-tracking evaluation, are currently missing. These features could further enhance the user experience for both patients and SLPs, but user interviews have nonetheless proven that the prototype shows promise and feasibility in real-world applications.
+Despite the prototype showing promise in practice, many proposed features, such as certain gamification elements, custom avatars, and automatic face-tracking evaluation, are currently missing. These features could further enhance the user experience for both patients and SLPs, but user interviews have nonetheless proven that the prototype shows promise and feasibility in real-world applications. 
+
 
 \section{Technical Challenges}
 \label{sec:technical-challenges}
@@ -20,6 +28,33 @@ Some of these features include a quest system that rewards users for completing 
 As a technical limitation, the prototype lacks a visual interface for signing in to the Django backend. User authentication is still possible via code, but implementing a usable UI interface for this feature was not considered part of the prototype's core functionality and was therefore omitted.
 
 Despite their limited implementation in the prototype, these additional features have not been ruled out and remain as part of a long-term development plan.
+
+\section{Reflection on design intent and execution of Gamification}
+\label{sec:reflection-on-gamification-as-a-design-lens}
+
+Gamification is defined as "the use rather than the extension of design elements characteristic of games in non-game contexts" \cite{deterding2011game}. Such gameful design practices, as they are also referred to \cite{deterding2011game}, are included in these contexts with the goal of improving user engagement and motivation by transferring design elements from games, which have proven uniquely effective in these metrics.
+
+These concepts align precisely with the project's hypothesis; as such, several game design elements were incorporated into the project's architecture as features, more specifically, avatar progression and quests. Additionally, while not strictly game design features by themselves, gamification was used as a design lens when developing the exercise system. This presented itself as different mechanics, such as the exercise level progression structure, "connections" exercise type, as well as UI choices like presenting words in a carousel, similar to holding physical cards in your hand.
+
+Additionally, during a user interview, the debug face-tracking visualization appeared, which the interviewee found quite amusing. Silly avatars often captivate children and seem effective at gaining their attention, even among the upper age range of our target users (10 years old). This was also repeated by the SLP: "One of my patients is obsessed with Spiderman. It's the only thing that can keep him interested sometimes." A proposed feature that overlays a character on the patient's face during practice gives users a character they can relate to, who has the same issues they do. Now they are not only performing the exercises to solve their own issue, but also to help their newfound friend. This also gives them a character that progresses alongside them, further motivating them to engage with exercises.
+
+Using Nicholson's RECIPE framework, the implementation of these features in the prototype was evaluated \cite{nicholson2015recipe}.
+
+Reflection: When the user completes an exercise, they are not able to see how well they performed. This doesn't allow them to reflect on their performance, which would motivate them to try again. This information is recorded and viewable by the SLP, so showing the patient which exercise types or sounds they struggled with most would resolve this issue.
+
+Exposition: Before each exercise starts, the user is provided with additional context during the explanation screen. These reminders keep the user engaged and remind them why they are performing the exercise, helping them stay motivated.
+
+Choice: Providing agency to users is an important part of keeping patients motivated. This is accomplished by the level selection screen. Users are able to choose which exercises to do and in what order, with the milestone level serving as a final assessment that ties everything together.
+
+Information: Similar to reflection, while information such as performance is available in the therapist dashboard, patients are only able to see which exercises they have completed and how many they have left.
+
+Play: The exercise system was designed with play thinking in mind. The UI design language relates the exercises to real-world play, and different mechanics are able to keep the users engaged.
+
+Engagement: Long-term engagement is largely lacking in the prototype, with the quest and avatar systems, which are meant to resolve this issue, being represented only as UI mock-ups.
+
+Overall, the evaluation shows that exposition and play are well served by the current exercise systems, with choice being addressed by the level selection screen. Information and reflection, on the other hand, while implemented on the side of the SLP, are hindered by the lack of feedback on the patient side. Long-term engagement also suffers from the missing quest and avatar systems. 
+
+These issues are resolved in the design, and while the prototype doesn't fully cover Nicholson's RECIPE framework, it shows that the added technical depth by these features is worth addressing.
 
 \section{Reflection on Software Engineering Practices}
 \label{sec:reflection-on-software-engineering-practices}

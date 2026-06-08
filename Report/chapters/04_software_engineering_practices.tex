@@ -6,13 +6,13 @@ This chapter describes the software engineering practices used for developing th
 \section{Software Design and Architecture Design Principles}
 \label{sec:software-design-and-architecture-design-principles}
 
-The system was designed as a multi-component application consisting of a Unity mobile client, a Django backend, a therapist web dashboard, and a Supabase PostgreSQL database. This decoupling was a key design decision, as each part of the system has a different responsibility, as outlined in the previous chapter, minimizing dependencies between components. An example of that would be that the Unity application does not directly access the database, yet receives the data it wants successfully. The design also follows the separation of concerns principle, distributing functionality across smaller parts rather than placing it all in a single application. Further benefits include easier maintainability, faster development speed, and lower overhead for future expansion. For instance, if there are changes to the internal data structure, it does not require changes as long as the API responses remain intact.
+The system was designed as a multi-component application consisting of a Unity mobile client, a Django backend, a therapist web dashboard, and a Supabase PostgreSQL database. This decoupling was a key design decision, as each part of the system has a different responsibility, as outlined in \Cref{ch:implementation}, minimizing dependencies between components. An example of that would be that the Unity application does not directly access the database, yet receives the data it wants successfully. The design also follows the separation of concerns principle, distributing functionality across smaller parts rather than placing it all in a single application. Further benefits include easier maintainability, faster development speed, and lower overhead for future expansion. For instance, if there are changes to the internal data structure, it does not require changes as long as the API responses remain intact.
 
 Another important design decision was to decouple larger parts of the system and avoid breaking the Single-Responsibility Principle. To illustrate, the exercise orchestrator controls the flow of the exercises while separate components handle the JSON parsing, animation, scene loader, answer panel, audio loading, and API communication.
 
 The system was also designed to be highly scalable and modular. The current prototype supports the main project workflow, but the architecture enables future development, including additional exercise types, richer progress tracking, stronger child authentication, offline support, and more advanced pronunciation feedback. This was important because the project is a prototype, but it should still provide a foundation that can be continued.
 
-The layered architecture of the application separates the system into levels of responsibility. As showcased in Table~X, the three main layers are the presentation layer, the application/backend layer, and the data layer:
+The layered architecture of the application separates the system into levels of responsibility, extending the architecture described in \Cref{sec:system-architecture}. The three main layers are as shown:
 
 \begin{itemize}
     \item \textbf{Presentation layer:} The presentation layer consists of the Unity client and the therapist web app. Those are the parts of the system that the user interacts with directly.
@@ -25,13 +25,13 @@ The layered approach is functional at keeping responsibilities separate, as the 
 \section{Scrum and Agile Team Organization}
 \label{sec:scrum-and-agile-team-organization}
 
-The project's development lifecycle followed the Agile methodology, using the Scrum framework. This approach was chosen over traditional models because it allowed the prototype to grow and the team to adapt to technical challenges and continuously integrate received feedback. Development was structured into sprints that lasted between one and two weeks, with each sprint focused on delivering functional or complete aspects of the project, such as problem formulation or building the web dashboard application.
+The project's development lifecycle followed the Agile methodology, using the Scrum framework. Scrum is a project management framework that breaks down the cycle of developing a software product from a single timeline into several small timeline cycles called sprints. This methodology was chosen over traditional linear methods, such as Waterfall, as it provided the team with the flexibility needed for prototype development. Sprints allowed the team to adapt to arising challenges. It also gave a way for the received feedback to be included in further sprints, allowing the prototype to evolve according to the users' expectations. The sprints were structured in either one- or two-week cycles. Every sprint was dedicated to a particular feature or issue. Our sprints also included the time needed for research, such as our problem formulation.
 
-To ensure that the system addressed users' real-life needs, the team created and used user stories and personas during the project's research phase. The requirements mapped the needs of both SLPs and patients, which helped in the creation of the problem formulation and proposed solutions.
+While the lifecycle of development followed Agile Scrum, the testing of the prototype adhered to the Verification and Validation principles of the V-model. The V-model is a traditionally linear testing framework stating that every development phase needs to have a corresponding testing phase. This model was adapted to fit into the team's sprint timelines. This approach was chosen because the project relies on asynchronous data routing between Unity, Django, and the database. To ensure data integrity across these components, we required immediate checks. As components were designed and implemented, the corresponding unit and integration tests were planned and executed. Before every sprint's start, the code was verified through member-reviewed pull requests in GitHub. This approach guaranteed that the code written consistently met the set requirements and integrated without slowing down the pace of Agile development.
 
-The project management software utilized by the group was mainly Jira. The team used the digital Scrum board to visualize and follow the workflow and assign tasks through completion phases, showing the status and progress. Tasks were also broken down and assigned to team members in Jira at the start of each sprint, ensuring that every member knew each task's assignee and status to avoid overlap and interference with each other's work.
+To utilize the Scrum framework, the team chose Jira as the primary project management software. The platform provided the members with issue-tracking tools that helped us visualize the workflow inside a Scrum board. The usage of this board was crucial to maintain transparency and to track the overall project's velocity. This ensured the team members did not overlap or interfere with each other's tasks. When a new sprint started, each goal was broken down and split into several tasks. These tasks were assigned to team members and transitioned over their respective lifecycle phases. Using Jira, the team had a real-time visualization of every task's status and each sprint's progress.
 
-While the team used Agile Scrum during the development lifecycle, our testing strategy was inspired by the V-model (Verification and Validation) principles. Due to the data routing between a Unity prototype, a web dashboard, and a database, each level of design needed a corresponding testing phase. Instead of applying the V-model principles as a linear process throughout the project, the team applied them on a per-sprint basis. As every component was made and designed, the corresponding unit and integration tests were planned and executed immediately to ensure that the newly written code met the requirements.
+To ensure the system remained relevant to its target audience, the team's initial step was to envision the end users. This was done by developing user personas representing the profiles and archetypes of target users. These profiles were paired with user stories created to represent complex features in a natural, simple way, told from the users' perspective. Together, these formed the requirements that guided the system toward addressing the real-world needs of its end users, rather than relying on assumptions. By mapping specific requirements of both SLPs and patients, a clearer problem foundation was established. They also informed the proposed solutions and prioritized feature development.
 
 \section{Testing and Quality Assurance}
 \label{sec:testing-and-quality-assurance}
@@ -46,4 +46,70 @@ End-to-end testing was also necessary, as the system includes many user-facing i
 
 Additionally, core Unity logic was unit tested, focusing mainly on the JSON-driven exercise system and verifying that the templates can be parsed correctly into the expected exercise, options, and word packages. The generated coverage report summarized in \Cref{tab:unity-selected-coverage} shows that the targeted test has good line coverage of the core \texttt{Exercise\_JSON\_Parser}, reaching a little over 84\%. The test assembly is fully covered, reaching 100\%.
 
-The full supplementary coverage summaries are included in \Cref{app:test-material}.
+\begin{table}[H]
+    \centering
+    \caption{Unity coverage report summary.}
+    \label{tab:unity-coverage-summary}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Metric} & \textbf{Result} \\
+        \midrule
+        Generated on & 2026-05-23 17:25 \\
+        Assemblies & 2 \\
+        Classes & 147 \\
+        Files & 127 \\
+        Covered lines & 286 \\
+        Uncovered lines & 12,723 \\
+        Coverable lines & 13,009 \\
+        Total lines & 24,042 \\
+        Line coverage & 2.1\% (286 of 13,009) \\
+        Covered methods & 82 \\
+        Total methods & 1,929 \\
+        Method coverage & 4.2\% (82 of 1,929) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Selected Unity class coverage results.}
+    \label{tab:unity-selected-coverage}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Class} & \textbf{Covered} & \textbf{Uncovered} & \textbf{Coverable} & \textbf{Coverage} \\
+        \midrule
+        Exercise\_JSON\_Parser & 127 & 23 & 150 & 84.6\% \\
+        ExerciseScoreCalculator & 6 & 0 & 6 & 100\% \\
+        Exercise & 13 & 4 & 17 & 76.4\% \\
+        Word\_Package & 8 & 7 & 15 & 53.3\% \\
+        Option\_Text & 13 & 0 & 13 & 100\% \\
+        Option\_Multiple\_Choice & 7 & 0 & 7 & 100\% \\
+        Option\_Groups & 7 & 0 & 7 & 100\% \\
+        Pronunciation\_Sound & 9 & 0 & 9 & 100\% \\
+        Tests / ExerciseJsonParserTests & 79 & 0 & 79 & 100\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Django backend coverage report summary.}
+    \label{tab:django-coverage-summary}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{File} & \textbf{Statements} & \textbf{Missing} & \textbf{Excluded} & \textbf{Coverage} \\
+        \midrule
+        therapy/\_\_init\_\_.py & 0 & 0 & 0 & 100\% \\
+        therapy/admin.py & 9 & 0 & 0 & 100\% \\
+        therapy/apps.py & 4 & 0 & 0 & 100\% \\
+        therapy/forms.py & 6 & 0 & 0 & 100\% \\
+        therapy/models.py & 67 & 0 & 0 & 100\% \\
+        therapy/urls.py & 3 & 0 & 0 & 100\% \\
+        therapy/views.py & 175 & 34 & 0 & 81\% \\
+        \midrule
+        Total & 264 & 34 & 0 & 87\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The Unity coverage report shows low overall line coverage because the Unity project contains many UI, scene, third-party, and MediaPipe-related scripts that were tested manually rather than through automated unit tests. The targeted Unity tests focused on the JSON-driven exercise system, where the parser and data model classes achieved substantially higher coverage. The Django backend coverage was higher overall because backend behavior such as models, routes, dashboard APIs, CRUD operations, assignment handling, and session storage is more suitable for automated unit testing.
