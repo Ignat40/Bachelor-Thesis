@@ -716,8 +716,15 @@ function submitNewExercise() {
     };
 
     if (blockType === 'MULTIPLE_CHOICE' || blockType === 'OPEN_QUESTION') {
-      let wText = block.querySelector('.w-text').value;
-      if (wText) exerciseData.Words.push({ "Text": wText });
+      let wText = block.querySelector('.w-text').value.trim();
+
+      if (wText) {
+        exerciseData.Words.push({ 
+          "Text": wText,
+          "Image_Link": `Images/${wText}.png`,
+          "Audio_Link": `Audio/${wText}.mp3`
+        });
+      }
 
       if (blockType === 'MULTIPLE_CHOICE') {
         block.querySelectorAll('.mc-row').forEach(row => {
@@ -738,10 +745,16 @@ function submitNewExercise() {
     }
     else if (blockType === 'CONNECTIONS') {
       block.querySelectorAll('.pair-row').forEach(row => {
-        let word = row.querySelector('.pair-word').value;
-        let target = row.querySelector('.pair-target').value;
+        let word = row.querySelector('.pair-word').value.trim();
+        let target = row.querySelector('.pair-target').value.trim();
+        
         if (word && target) {
-          exerciseData.Words.push({ "Text": word });
+          // Automatically generate Image and Audio links using the base word
+          exerciseData.Words.push({ 
+            "Text": word,
+            "Image_Link": `Images/${word}.png`,
+            "Audio_Link": `Audio/${word}.mp3`
+          });
           exerciseData.Options.push({ "Word": word, "Connected_Words": [target] });
         }
       });
